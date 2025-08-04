@@ -49,7 +49,7 @@ gem "bootsnap", require: false
 
 gem 'concurrent-ruby', '1.3.4'
 gem 'pg'
-gem 'forest_liana', path: '/Users/matthieuvideaud/Sites/agents/in-app/forest-rails'
+gem 'forest_liana'
 
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
