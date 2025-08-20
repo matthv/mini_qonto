@@ -49,7 +49,13 @@ gem "bootsnap", require: false
 
 gem 'concurrent-ruby', '1.3.4'
 gem 'pg'
-gem 'forest_liana'
+
+gem 'forest_admin_rails', path: '/Users/matthieuvideaud/Sites/agents/in-app/agent-ruby/packages/forest_admin_rails'
+gem 'forest_admin_agent', path: '/Users/matthieuvideaud/Sites/agents/in-app/agent-ruby/packages/forest_admin_agent'
+gem 'forest_admin_datasource_toolkit', path: '/Users/matthieuvideaud/Sites/agents/in-app/agent-ruby/packages/forest_admin_datasource_toolkit'
+gem 'forest_admin_datasource_active_record', path: '/Users/matthieuvideaud/Sites/agents/in-app/agent-ruby/packages/forest_admin_datasource_active_record'
+gem 'forest_admin_datasource_customizer', path: '/Users/matthieuvideaud/Sites/agents/in-app/agent-ruby/packages/forest_admin_datasource_customizer'
+gem 'forest_admin_datasource_mongoid', path: '/Users/matthieuvideaud/Sites/agents/in-app/agent-ruby/packages/forest_admin_datasource_mongoid'
 
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
