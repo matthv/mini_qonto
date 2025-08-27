@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_07_28_110001) do
+ActiveRecord::Schema[7.0].define(version: 2025_08_20_150002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -24,4 +24,23 @@ ActiveRecord::Schema[7.0].define(version: 2025_07_28_110001) do
     t.index ["organization_id"], name: "index_claims_on_organization_id"
   end
 
+  create_table "disputed_transactions", force: :cascade do |t|
+    t.bigint "claim_id", null: false
+    t.integer "api_transaction_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["api_transaction_id"], name: "index_disputed_transactions_on_api_transaction_id"
+    t.index ["claim_id"], name: "index_disputed_transactions_on_claim_id"
+  end
+
+  create_table "mastercom_claims", force: :cascade do |t|
+    t.bigint "disputed_transaction_id", null: false
+    t.string "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["disputed_transaction_id"], name: "index_mastercom_claims_on_disputed_transaction_id"
+  end
+
+  add_foreign_key "disputed_transactions", "claims"
+  add_foreign_key "mastercom_claims", "disputed_transactions"
 end
