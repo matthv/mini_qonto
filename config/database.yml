@@ -23,6 +23,16 @@ development:
     <<: *default
     database: <%= ENV.fetch("DB_CARD_CLAIM_NAME") { "mini_qonto_card_claim_development" } %>
     migrations_paths: db/card_claim_migrate
+  company_monitoring:
+    <<: *default
+    database: <%= ENV.fetch("DB_COMPANY_MONITORING_NAME") { "mini_qonto_company_monitoring_development" } %>
+    migrations_paths: db/company_monitoring_migrate
+  biller:
+    <<: *default
+    database: <%= ENV.fetch("DB_BILLER_NAME") { "mini_qonto_biller_development" } %>
+    migrations_paths: db/biller_migrate
+
+
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
