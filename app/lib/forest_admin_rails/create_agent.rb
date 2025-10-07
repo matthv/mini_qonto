@@ -1,5 +1,9 @@
 require_relative 'actions/actions'
+<<<<<<< Updated upstream
 require_relative 'charts/charts'
+=======
+require_relative 'hooks/hooks'
+>>>>>>> Stashed changes
 
 module ForestAdminRails
   class CreateAgent
@@ -14,7 +18,11 @@ module ForestAdminRails
 
     def self.customize
       ForestAdminRails::Actions.register(@create_agent)
+<<<<<<< Updated upstream
       ForestAdminRails::Charts.register(@create_agent)
+=======
+      ForestAdminRails::Hooks.register(@create_agent)
+>>>>>>> Stashed changes
     end
   end
 end
