@@ -2,6 +2,10 @@
 
 require_relative 'value'
 require_relative 'objective'
+require_relative 'percentage'
+require_relative 'distribution'
+require_relative 'leaderboard'
+require_relative 'time_based'
 
 module ForestAdminRails
   module Charts
@@ -10,6 +14,10 @@ module ForestAdminRails
     def register(agent)
       Value.register(agent)
       Objective.register(agent)
+      Percentage.register(agent)
+      Distribution.register(agent)
+      Leaderboard.register(agent)
+      TimeBased.register(agent)
     end
 
     Charts = self
