@@ -25,8 +25,8 @@ COPY Gemfile Gemfile.lock ./
 #
 # For development, you can mount the local gems as volumes
 
-# Install gems
-RUN bundle config set --local without 'development test' && \
+# Install gems (include development and test groups for local usage)
+RUN bundle config set --local path '/usr/local/bundle' && \
     bundle install
 
 # Copy application code

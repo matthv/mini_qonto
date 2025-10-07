@@ -47,6 +47,9 @@ COPY --from=gems /path/to/gems /forest_admin_gems
 
 ### Database
 ```bash
+# Create all PostgreSQL databases using the helper script
+bin/create_databases
+
 # Create databases
 docker-compose exec web rails db:create
 
@@ -65,6 +68,8 @@ docker-compose exec web rails console
 # Reset databases
 docker-compose exec web rails db:drop db:create db:migrate
 ```
+
+> Tip: When the app runs inside Docker, execute `docker-compose exec web bin/create_databases` to run the script in the container environment.
 
 ### Rebuild
 ```bash

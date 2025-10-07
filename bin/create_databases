@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+ENV_FILE="${APP_ROOT}/.env"
+if [[ -f "${ENV_FILE}" ]]; then
+  set -a
+  # shellcheck source=/dev/null
+  source "${ENV_FILE}"
+  set +a
+fi
+
+DB_USERNAME="${DB_USERNAME:-postgres}"
+DB_PASSWORD="${DB_PASSWORD:-postgres}"
+DB_HOST="${DB_HOST:-localhost}"
+DB_PORT="${DB_PORT:-5432}"
+DB_ADMIN_DATABASE="${DB_ADMIN_DATABASE:-postgres}"
+
+DATABASES=(
+  "${DB_API_NAME:-}"
+  "${DB_CARD_CLAIM_NAME:-}"
+  "${DB_COMPANY_MONITORING_NAME:-}"
+  "${DB_BILLER_NAME:-}"
+  "${DB_TEST_NAME:-}"
+  "${DB_PRODUCTION_NAME:-}"
+)
+
+PSQL_BASE=(psql -h "${DB_HOST}" -p "${DB_PORT}" -U "${DB_USERNAME}" -d "${DB_ADMIN_DATABASE}" -v ON_ERROR_STOP=1)
+
+PGPASSWORD="${DB_PASSWORD}"
+export PGPASSWORD
+
+for db_name in "${DATABASES[@]}"; do
+  if [[ -z "${db_name}" ]]; then
+    continue
+  fi
+
+  echo "Checking database '${db_name}'..."
+
+  if "${PSQL_BASE[@]}" -tAc "SELECT 1 FROM pg_database WHERE datname='${db_name}'" | grep -q 1; then
+    echo "Database '${db_name}' already exists. Skipping creation."
+    continue
+  fi
+
+  echo "Creating database '${db_name}'..."
+  "${PSQL_BASE[@]}" -c "CREATE DATABASE \"${db_name}\""
+done
+
+echo "All requested databases are present."
