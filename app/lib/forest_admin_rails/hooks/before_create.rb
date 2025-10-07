@@ -14,7 +14,7 @@ module ForestAdminRails
             if context.data['iban'].present?
               iban = context.data['iban'].gsub(/\s+/, '')
               unless iban.match?(/^[A-Z]{2}\d{2}[A-Z0-9]+$/)
-                raise ForestAdminDatasourceToolkit::Exceptions::ValidationError, 'Invalid IBAN format'
+                context.raise_validation_error('Invalid IBAN format')
               end
             end
 
