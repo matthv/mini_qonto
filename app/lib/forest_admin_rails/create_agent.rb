@@ -1,3 +1,5 @@
+require_relative 'actions/actions'
+
 module ForestAdminRails
   class CreateAgent
     def self.setup!
@@ -10,7 +12,7 @@ module ForestAdminRails
     end
 
     def self.customize
-      # @create_agent.add_datasource....
+      ForestAdminRails::Actions.register(@create_agent)
     end
   end
 end
