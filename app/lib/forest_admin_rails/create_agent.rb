@@ -6,7 +6,14 @@ module ForestAdminRails
   class CreateAgent
     def self.setup!
       database_configuration = Rails.configuration.database_configuration
-      datasource = ForestAdminDatasourceActiveRecord::Datasource.new(database_configuration[Rails.env]['api'])
+      datasource = ForestAdminDatasourceActiveRecord::Datasource.new(
+        database_configuration[Rails.env]['api'],
+        # TODO: change the doc because api should be the key and main_database the value
+        # the value represent the name displayed in the UI
+        live_query_connections: {
+          'main_database' => 'api'
+        }
+      )
 
       @create_agent = ForestAdminAgent::Builder::AgentFactory.instance.add_datasource(datasource)
       customize
