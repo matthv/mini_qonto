@@ -10,11 +10,15 @@ module ForestAdminRails
       def register(agent)
         agent.customize_collection(BANK_ACCOUNT_COLLECTION) do |collection|
           collection.add_hook('Before', 'List') do |context|
-            # Log the list request
-            Rails.logger.info("Listing bank accounts for user: #{context.caller.id}")
-
-            # Add a filter to exclude archived accounts
-            context.filter = context.filter.and({ field: 'status', operator: 'not_equal', value: 'archived' })
+            # Check if both filter and segment are null/empty
+            if context.filter.condition_tree.blank? && context.filter.segment.blank?
+              # Add condition to match id = 1
+              new_condition = ForestAdminAgent::Utils::ConditionTreeParser.from_plain_object(
+                context.collection,
+                { field: 'id', operator: 'Equal', value: 1 }
+              )
+              context._filter = context.filter.override(condition_tree: new_condition)
+            end
           end
         end
       end
