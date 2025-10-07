@@ -37,6 +37,3 @@ COPY . .
 
 # Expose port
 EXPOSE 3000
-
-# Start the server
-CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]

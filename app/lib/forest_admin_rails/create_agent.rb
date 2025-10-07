@@ -2,7 +2,7 @@ module ForestAdminRails
   class CreateAgent
     def self.setup!
       database_configuration = Rails.configuration.database_configuration
-      datasource = ForestAdminDatasourceActiveRecord::Datasource.new(database_configuration[Rails.env]['api'], support_polymorphic_relations: true,)
+      datasource = ForestAdminDatasourceActiveRecord::Datasource.new(database_configuration[Rails.env]['api'])
 
       @create_agent = ForestAdminAgent::Builder::AgentFactory.instance.add_datasource(datasource)
       customize

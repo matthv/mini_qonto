@@ -26,7 +26,7 @@ services:
       # Mount local forest_admin gems for development
       # Adjust paths as needed
       # - /Users/matthieuvideaud/Sites/agents/in-app/agent-ruby/packages/forest_admin_rails:/forest_admin_gems/forest_admin_rails
-      # /Users/matthieuvideaud/Sites/agents/in-app/agent-ruby/packages/forest_admin_agent:/forest_admin_gems/forest_admin_agent
+      # - /Users/matthieuvideaud/Sites/agents/in-app/agent-ruby/packages/forest_admin_agent:/forest_admin_gems/forest_admin_agent
       # - /Users/matthieuvideaud/Sites/agents/in-app/agent-ruby/packages/forest_admin_datasource_toolkit:/forest_admin_gems/forest_admin_datasource_toolkit
       # - /Users/matthieuvideaud/Sites/agents/in-app/agent-ruby/packages/forest_admin_datasource_active_record:/forest_admin_gems/forest_admin_datasource_active_record
       # - /Users/matthieuvideaud/Sites/agents/in-app/agent-ruby/packages/forest_admin_datasource_customizer:/forest_admin_gems/forest_admin_datasource_customizer
@@ -43,6 +43,8 @@ services:
       RAILS_MAX_THREADS: ${RAILS_MAX_THREADS:-5}
     stdin_open: true
     tty: true
+    extra_hosts:
+    - "api.development.forestadmin.com:host-gateway"
 
 volumes:
   postgres_data:
