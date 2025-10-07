@@ -1,4 +1,5 @@
 require_relative 'actions/actions'
+require_relative 'charts/charts'
 
 module ForestAdminRails
   class CreateAgent
@@ -13,6 +14,7 @@ module ForestAdminRails
 
     def self.customize
       ForestAdminRails::Actions.register(@create_agent)
+      ForestAdminRails::Charts.register(@create_agent)
     end
   end
 end

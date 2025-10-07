@@ -21,7 +21,6 @@ ActiveRecord::Schema[7.0].define(version: 2025_09_16_152502) do
     t.string "iban"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "bank_account_id"
     t.index ["organization_id"], name: "index_bank_accounts_on_organization_id"
     t.index ["subject_type", "subject_id"], name: "index_bank_accounts_on_subject"
   end
