@@ -49,6 +49,7 @@ gem "bootsnap", require: false
 
 gem 'concurrent-ruby', '1.3.4'
 gem 'pg'
+gem 'pry'
 
 gem 'forest_admin_rails', path: '/Users/matthieuvideaud/Sites/agents/in-app/agent-ruby/packages/forest_admin_rails'
 gem 'forest_admin_agent', path: '/Users/matthieuvideaud/Sites/agents/in-app/agent-ruby/packages/forest_admin_agent'
