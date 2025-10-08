@@ -1,0 +1,26 @@
+{
+  "name": "bomber",
+  "version": "1.0.0",
+  "description": "Example Node.js package configured with Jest",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "sandbox": "node dist/sandbox-server.js",
+    "presandbox": "yarn build",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@forestadmin-experimental/agent-nodejs-testing": "^0.31.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.7.0",
+    "dotenv": "^17.2.3",
+    "jest": "^29.7.0",
+    "jest-util": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.5.4"
+  },
+  "packageManager": "yarn@4.9.2"
+}

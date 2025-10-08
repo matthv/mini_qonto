@@ -18,7 +18,7 @@ services:
 
   web:
     build: .
-    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails db:create db:migrate && bundle exec rails server -b 0.0.0.0"
+    command: bash -c "rm -f tmp/pids/server.pid && bundle && bundle exec rails db:create db:migrate && bundle exec rails server -b 0.0.0.0"
     env_file:
       - ./.env
     volumes:
@@ -45,6 +45,7 @@ services:
     tty: true
     extra_hosts:
     - "api.development.forestadmin.com:host-gateway"
+    - "host.docker.internal:host-gateway"
 
 volumes:
   postgres_data:

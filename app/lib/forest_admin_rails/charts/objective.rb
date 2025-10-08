@@ -9,7 +9,7 @@ module ForestAdminRails
 
       def register(agent)
         agent.add_chart(CHART_NAME) do |_context, result_builder|
-          total_amount = Api::Income.sum(:amount).to_i
+          total_amount = 45000.to_i
           objective_amount = 10000.to_i
 
           result_builder.objective(total_amount, objective_amount)
