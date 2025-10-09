@@ -11,7 +11,7 @@ module ForestAdminRails
         agent.customize_collection(BANK_ACCOUNT_COLLECTION) do |collection|
           collection.add_hook('Before', 'Update') do |context|
             # Prevent updating IBAN if account is verified
-            if context.data.key?('iban')
+            if context.patch.key?('iban')
               record = context.collection.get(context.filter)
               if record['verified_at'].present?
                 raise ForestAdminDatasourceToolkit::Exceptions::ForbiddenError, 'Cannot update IBAN of verified account'
@@ -19,7 +19,7 @@ module ForestAdminRails
             end
 
             # Track last updated timestamp
-            context.data['updated_at'] = Time.current
+            context.patch['updated_at'] = Time.current
           end
         end
       end

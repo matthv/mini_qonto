@@ -12,7 +12,7 @@ module ForestAdminRails
           collection.add_hook('After', 'Update') do |context|
             # Log the update action
             changed_fields = context.patch.keys
-            Rails.logger.info("Bank account #{context.record['id']} updated. Changed fields: #{changed_fields.join(', ')}")
+            Rails.logger.info("Bank account updated. Changed fields: #{changed_fields.join(', ')}")
 
             # Send audit trail event
             # AuditTrailService.log_update(
@@ -23,7 +23,7 @@ module ForestAdminRails
             # )
 
             # Invalidate cache
-            Rails.cache.delete("bank_account_#{context.record['id']}")
+            # Rails.cache.delete("bank_account_#{context.record['id']}")
           end
         end
       end
