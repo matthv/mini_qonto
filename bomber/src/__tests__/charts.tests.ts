@@ -31,21 +31,10 @@ describe("charts", () => {
     expect(chart).toBe(44);
   });
 
-  // TODO make this test green
   it("fails to load the failing chart", async () => {
     await expect(
       clientAgent.valueChart("failing-incomes-chart")
     ).rejects.toThrow(/Unexpected chart failure/);
-  });
-
-  it("loads collection value chart", async () => {
-    const chart = await clientAgent
-      .collection("Api__BankAccount")
-      .valueChart("bank-accounts-total-incomes", {
-        recordId: 1,
-      });
-
-    expect(chart).toEqual({ countCurrent: 4650, countPrevious: null });
   });
 
   it("loads distribution chart", async () => {

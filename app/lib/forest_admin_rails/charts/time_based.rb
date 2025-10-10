@@ -47,9 +47,24 @@ module ForestAdminRails
       }.freeze
 
       def register(agent)
+        register_agent_charts(agent)
+        register_collection_charts(agent)
+      end
+
+      def register_agent_charts(agent)
         CHART_CONFIGURATIONS.each do |chart_name, configuration|
           agent.add_chart(chart_name) do |_context, result_builder|
             result_builder.time_based(configuration[:range], configuration[:values])
+          end
+        end
+      end
+
+      def register_collection_charts(agent)
+        agent.customize_collection('Api__BankAccount') do |collection|
+          CHART_CONFIGURATIONS.each do |chart_name, configuration|
+            collection.add_chart(chart_name) do |_context, result_builder|
+              result_builder.time_based(configuration[:range], configuration[:values])
+            end
           end
         end
       end
