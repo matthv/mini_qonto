@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-export const AGENT_PORT = 3002;
+export const AGENT_PORT = 3000;
 export const SERVER_SANDBOX_PORT = 3311;
 
 export function mountAgentClient() {

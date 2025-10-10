@@ -405,9 +405,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@forestadmin-experimental/agent-nodejs-testing@npm:^0.31.2":
-  version: 0.31.2
-  resolution: "@forestadmin-experimental/agent-nodejs-testing@npm:0.31.2"
+"@forestadmin-experimental/agent-nodejs-testing@npm:^0.32.3":
+  version: 0.32.3
+  resolution: "@forestadmin-experimental/agent-nodejs-testing@npm:0.32.3"
   dependencies:
     "@forestadmin/agent": "npm:1.52.0"
     "@forestadmin/datasource-customizer": "npm:1.55.2"
@@ -421,7 +421,7 @@ __metadata:
     "@forestadmin/datasource-customizer": ">=1.55.2"
     "@forestadmin/datasource-toolkit": ">=1.43.0"
     "@forestadmin/forestadmin-client": ">=1.34.2"
-  checksum: 10c0/8679ee45533855c58402940b5a60adc9c6c228b1a97ac14916b0872193cc297bb0c6b843c4131381a6b17ec791220b1ab8cc02be8e4afbb0e23af0b977c8200f
+  checksum: 10c0/7206a07bdf7ccd9fbe2ec83e396875ca979a4283bc58c69cfdd0e527424162e88806843e153281ce296b64cb5eabde7e690bfa4c3b96e740564c54c2d2b23f2f
   languageName: node
   linkType: hard
 
@@ -1554,14 +1554,14 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "bomber@workspace:."
   dependencies:
-    "@forestadmin-experimental/agent-nodejs-testing": "npm:^0.31.2"
+    "@forestadmin-experimental/agent-nodejs-testing": "npm:^0.32.3"
     "@types/jest": "npm:^30.0.0"
     "@types/node": "npm:^24.7.0"
     dotenv: "npm:^17.2.3"
-    jest: "npm:^29.7.0"
+    jest: "npm:^29"
     jest-util: "npm:^29.7.0"
-    ts-jest: "npm:^29.1.1"
-    typescript: "npm:^5.5.4"
+    ts-jest: "npm:^29"
+    typescript: "npm:^5.9.3"
   languageName: unknown
   linkType: soft
 
@@ -3565,7 +3565,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest@npm:^29.7.0":
+"jest@npm:^29":
   version: 29.7.0
   resolution: "jest@npm:29.7.0"
   dependencies:
@@ -5230,7 +5230,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-jest@npm:^29.1.1":
+"ts-jest@npm:^29":
   version: 29.4.4
   resolution: "ts-jest@npm:29.4.4"
   dependencies:
@@ -5315,7 +5315,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.5.4":
+"typescript@npm:^5.9.3":
   version: 5.9.3
   resolution: "typescript@npm:5.9.3"
   bin:
@@ -5325,7 +5325,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A^5.5.4#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A^5.9.3#optional!builtin<compat/typescript>":
   version: 5.9.3
   resolution: "typescript@patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"
   bin:
