@@ -7,8 +7,7 @@
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "sandbox": "node dist/sandbox-server.js",
-    "presandbox": "docker-compose up -d && yarn build",
-    
+    "presandbox": "docker compose up -d && yarn build",
     "test": "jest"
   },
   "dependencies": {
