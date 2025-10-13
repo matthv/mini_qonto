@@ -47,7 +47,7 @@ describe("filters", () => {
               operator: "After",
               value: createdAfter,
             },
-            condition,
+            condition as any,
           ],
         },
       },
@@ -264,9 +264,7 @@ describe("filters", () => {
       }
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ id: expected.id }),
-        ])
+        expect.arrayContaining([expect.objectContaining({ id: expected.id })])
       );
     });
 
