@@ -1,4 +1,3 @@
-import { SelectOptions } from "@forestadmin-experimental/agent-nodejs-testing/dist/remote-agent-client/types";
 import { mountAgentClient } from "../../agent-setup";
 
 type AgentClient = Awaited<ReturnType<typeof mountAgentClient>>;
@@ -18,14 +17,15 @@ describe("filters", () => {
     clientAgent = await mountAgentClient();
   });
 
+  const products = () => clientAgent.collection(PRODUCTS_COLLECTION);
   beforeEach(async () => {
     const allProducts = await products().list<ProductRecord>();
-    await products().delete(allProducts.map((product) => product.id as number));
+    if (allProducts.length > 0) {
+      await products().delete(
+        allProducts.map((product) => String(product.id))
+      );
+    }
   });
-
-  const products = () => clientAgent.collection(PRODUCTS_COLLECTION);
-  const uniqueSeed = () =>
-    `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 
   describe("type string", () => {
     it("contains", async () => {
@@ -264,11 +264,9 @@ describe("filters", () => {
     });
 
     it("not equal", async () => {
-      const prefix = `string-notequal-${uniqueSeed()}`;
-
       await Promise.all([
-        products().create<ProductRecord>({ name: `${prefix}-keep` }),
-        products().create<ProductRecord>({ name: `${prefix}-exclude` }),
+        products().create<ProductRecord>({ name: "string-notequal-keep" }),
+        products().create<ProductRecord>({ name: "string-notequal-exclude" }),
       ]);
 
       const productsResult = await products().list<ProductRecord>({
@@ -279,12 +277,12 @@ describe("filters", () => {
               {
                 field: "name",
                 operator: "Contains",
-                value: prefix,
+                value: "string-notequal",
               },
               {
                 field: "name",
                 operator: "NotEqual",
-                value: `${prefix}-exclude`,
+                value: "string-notequal-exclude",
               },
             ],
           },
@@ -294,18 +292,16 @@ describe("filters", () => {
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `${prefix}-keep` }),
+          expect.objectContaining({ name: "string-notequal-keep" }),
         ])
       );
     });
 
     it("not in", async () => {
-      const prefix = `string-notin-${uniqueSeed()}`;
-
       await Promise.all([
-        products().create<ProductRecord>({ name: `${prefix}-keep` }),
-        products().create<ProductRecord>({ name: `${prefix}-exclude-a` }),
-        products().create<ProductRecord>({ name: `${prefix}-exclude-b` }),
+        products().create<ProductRecord>({ name: "string-notin-keep" }),
+        products().create<ProductRecord>({ name: "string-notin-exclude-a" }),
+        products().create<ProductRecord>({ name: "string-notin-exclude-b" }),
       ]);
 
       const productsResult = await products().list<ProductRecord>({
@@ -316,12 +312,12 @@ describe("filters", () => {
               {
                 field: "name",
                 operator: "Contains",
-                value: prefix,
+                value: "string-notin",
               },
               {
                 field: "name",
                 operator: "NotIn",
-                value: [`${prefix}-exclude-a`, `${prefix}-exclude-b`],
+                value: ["string-notin-exclude-a", "string-notin-exclude-b"],
               },
             ],
           },
@@ -331,20 +327,18 @@ describe("filters", () => {
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `${prefix}-keep` }),
+          expect.objectContaining({ name: "string-notin-keep" }),
         ])
       );
     });
 
     it("i contains", async () => {
-      const marker = `string-icontains-${uniqueSeed()}`;
-
       await Promise.all([
-        products().create<ProductRecord>({ name: `${marker}-match-a` }),
+        products().create<ProductRecord>({ name: "string-icontains-match-a" }),
         products().create<ProductRecord>({
-          name: `${marker.toUpperCase()}-MATCH-b`,
+          name: "STRING-ICONTAINS-MATCH-b",
         }),
-        products().create<ProductRecord>({ name: `no-match-${uniqueSeed()}` }),
+        products().create<ProductRecord>({ name: "unrelated-entry" }),
       ]);
 
       const productsResult = await products().list<ProductRecord>({
@@ -355,7 +349,7 @@ describe("filters", () => {
               {
                 field: "name",
                 operator: "IContains",
-                value: marker,
+                value: "string-icontains",
               },
             ],
           },
@@ -365,21 +359,19 @@ describe("filters", () => {
       expect(productsResult).toHaveLength(2);
       expect(productsResult).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `${marker}-match-a` }),
-          expect.objectContaining({ name: `${marker.toUpperCase()}-MATCH-b` }),
+          expect.objectContaining({ name: "string-icontains-match-a" }),
+          expect.objectContaining({ name: "STRING-ICONTAINS-MATCH-b" }),
         ])
       );
     });
 
     it("i starts with", async () => {
-      const marker = `string-istarts-${uniqueSeed()}`;
-
       await Promise.all([
-        products().create<ProductRecord>({ name: `${marker}-match-a` }),
+        products().create<ProductRecord>({ name: "string-istarts-match-a" }),
         products().create<ProductRecord>({
-          name: `${marker.toUpperCase()}-MATCH-b`,
+          name: "STRING-ISTARTS-MATCH-b",
         }),
-        products().create<ProductRecord>({ name: `prefix-${marker}-miss` }),
+        products().create<ProductRecord>({ name: "prefix-string-istarts-miss" }),
       ]);
 
       const productsResult = await products().list<ProductRecord>({
@@ -390,7 +382,7 @@ describe("filters", () => {
               {
                 field: "name",
                 operator: "IStartsWith",
-                value: marker,
+                value: "string-istarts",
               },
             ],
           },
@@ -400,21 +392,19 @@ describe("filters", () => {
       expect(productsResult).toHaveLength(2);
       expect(productsResult).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `${marker}-match-a` }),
-          expect.objectContaining({ name: `${marker.toUpperCase()}-MATCH-b` }),
+          expect.objectContaining({ name: "string-istarts-match-a" }),
+          expect.objectContaining({ name: "STRING-ISTARTS-MATCH-b" }),
         ])
       );
     });
 
     it("i ends with", async () => {
-      const suffix = `string-iends-${uniqueSeed()}`;
-
       await Promise.all([
-        products().create<ProductRecord>({ name: `prefix-a-${suffix}` }),
+        products().create<ProductRecord>({ name: "prefix-a-string-iends" }),
         products().create<ProductRecord>({
-          name: `PREFIX-B-${suffix.toUpperCase()}`,
+          name: "PREFIX-B-STRING-IENDS",
         }),
-        products().create<ProductRecord>({ name: `${suffix}-trailing-miss` }),
+        products().create<ProductRecord>({ name: "string-iends-trailing-miss" }),
       ]);
 
       const productsResult = await products().list<ProductRecord>({
@@ -425,7 +415,7 @@ describe("filters", () => {
               {
                 field: "name",
                 operator: "IEndsWith",
-                value: suffix,
+                value: "string-iends",
               },
             ],
           },
@@ -435,21 +425,19 @@ describe("filters", () => {
       expect(productsResult).toHaveLength(2);
       expect(productsResult).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `prefix-a-${suffix}` }),
+          expect.objectContaining({ name: "prefix-a-string-iends" }),
           expect.objectContaining({
-            name: `PREFIX-B-${suffix.toUpperCase()}`,
+            name: "PREFIX-B-STRING-IENDS",
           }),
         ])
       );
     });
 
     it("like", async () => {
-      const base = `string-like-${uniqueSeed()}`;
-
       await Promise.all([
-        products().create<ProductRecord>({ name: `${base}-target-a` }),
-        products().create<ProductRecord>({ name: `${base}-target-b` }),
-        products().create<ProductRecord>({ name: `${base}-miss` }),
+        products().create<ProductRecord>({ name: "string-like-target-a" }),
+        products().create<ProductRecord>({ name: "string-like-target-b" }),
+        products().create<ProductRecord>({ name: "string-like-miss" }),
       ]);
 
       const productsResult = await products().list<ProductRecord>({
@@ -460,7 +448,7 @@ describe("filters", () => {
               {
                 field: "name",
                 operator: "Like",
-                value: `${base}-target-%`,
+                value: "string-like-target-%",
               },
             ],
           },
@@ -470,21 +458,19 @@ describe("filters", () => {
       expect(productsResult).toHaveLength(2);
       expect(productsResult).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-target-a` }),
-          expect.objectContaining({ name: `${base}-target-b` }),
+          expect.objectContaining({ name: "string-like-target-a" }),
+          expect.objectContaining({ name: "string-like-target-b" }),
         ])
       );
     });
 
     it("i like", async () => {
-      const base = `string-ilike-${uniqueSeed()}`;
-
       await Promise.all([
-        products().create<ProductRecord>({ name: `${base}-target-a` }),
+        products().create<ProductRecord>({ name: "string-ilike-target-a" }),
         products().create<ProductRecord>({
-          name: `${base.toUpperCase()}-TARGET-b`,
+          name: "STRING-ILIKE-TARGET-b",
         }),
-        products().create<ProductRecord>({ name: `${base}-miss` }),
+        products().create<ProductRecord>({ name: "string-ilike-miss" }),
       ]);
 
       const productsResult = await products().list<ProductRecord>({
@@ -495,7 +481,7 @@ describe("filters", () => {
               {
                 field: "name",
                 operator: "ILike",
-                value: `${base.toUpperCase()}-TARGET-%`,
+                value: "STRING-ILIKE-TARGET-%",
               },
             ],
           },
@@ -505,22 +491,20 @@ describe("filters", () => {
       expect(productsResult).toHaveLength(2);
       expect(productsResult).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-target-a` }),
+          expect.objectContaining({ name: "string-ilike-target-a" }),
           expect.objectContaining({
-            name: `${base.toUpperCase()}-TARGET-b`,
+            name: "STRING-ILIKE-TARGET-b",
           }),
         ])
       );
     });
 
     it("longer than", async () => {
-      const base = `string-longer-${uniqueSeed()}`;
-
       await Promise.all([
         products().create<ProductRecord>({
-          name: `${base}-this-is-a-very-long-target`,
+          name: "string-longer-this-is-a-very-long-target",
         }),
-        products().create<ProductRecord>({ name: `${base}-short` }),
+        products().create<ProductRecord>({ name: "string-longer-short" }),
       ]);
 
       const productsResult = await products().list<ProductRecord>({
@@ -531,7 +515,7 @@ describe("filters", () => {
               {
                 field: "name",
                 operator: "Contains",
-                value: base,
+                value: "string-longer",
               },
               {
                 field: "name",
@@ -547,22 +531,22 @@ describe("filters", () => {
       expect(productsResult).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            name: `${base}-this-is-a-very-long-target`,
+            name: "string-longer-this-is-a-very-long-target",
           }),
         ])
       );
     });
 
     it("shorter than", async () => {
-      const base = `string-shorter-${uniqueSeed()}`;
+      const shortName = "string-shorter-tiny";
+      const longName = "string-shorter-this-is-a-very-long-target";
 
       await Promise.all([
-        products().create<ProductRecord>({ name: `${base}-tiny` }),
-        products().create<ProductRecord>({
-          name: `${base}-this-is-a-very-long-target`,
-        }),
+        products().create<ProductRecord>({ name: shortName }),
+        products().create<ProductRecord>({ name: longName }),
       ]);
 
+      const limit = shortName.length + 1;
       const productsResult = await products().list<ProductRecord>({
         filters: {
           conditionTree: {
@@ -571,12 +555,12 @@ describe("filters", () => {
               {
                 field: "name",
                 operator: "Contains",
-                value: base,
+                value: "string-shorter",
               },
               {
                 field: "name",
                 operator: "ShorterThan",
-                value: base.length + "-tiny".length + 2,
+                value: limit,
               },
             ],
           },
@@ -586,13 +570,13 @@ describe("filters", () => {
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-tiny` }),
+          expect.objectContaining({ name: shortName }),
         ])
       );
     });
 
     it("present", async () => {
-      const name = `string-present-${uniqueSeed()}`;
+      const name = "string-present-value";
 
       await Promise.all([
         products().create<ProductRecord>({ name }),
@@ -622,9 +606,7 @@ describe("filters", () => {
     it("missing", async () => {
       await Promise.all([
         products().create<ProductRecord>({ name: null }),
-        products().create<ProductRecord>({
-          name: `string-missing-${uniqueSeed()}`,
-        }),
+        products().create<ProductRecord>({ name: "string-missing-other" }),
       ]);
 
       const productsResult = await products().list<ProductRecord>({
@@ -648,12 +630,10 @@ describe("filters", () => {
     });
 
     it("not i contains", async () => {
-      const base = `string-noticontains-${uniqueSeed()}`;
-
       await Promise.all([
-        products().create<ProductRecord>({ name: `${base}-allowed` }),
+        products().create<ProductRecord>({ name: "string-noticontains-allowed" }),
         products().create<ProductRecord>({
-          name: `${base}-Excluded`,
+          name: "string-noticontains-Excluded",
         }),
       ]);
 
@@ -665,7 +645,7 @@ describe("filters", () => {
               {
                 field: "name",
                 operator: "Contains",
-                value: base,
+                value: "string-noticontains",
               },
               {
                 field: "name",
@@ -680,17 +660,15 @@ describe("filters", () => {
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-allowed` }),
+          expect.objectContaining({ name: "string-noticontains-allowed" }),
         ])
       );
     });
 
     it("less than", async () => {
-      const base = `string-lessthan-${uniqueSeed()}`;
-
-      const shortName = `${base}-s`;
-      const mediumName = `${base}-medium-length`;
-      const longName = `${base}-very-very-long-entry`;
+      const shortName = "string-lessthan-s";
+      const mediumName = "string-lessthan-medium-length";
+      const longName = "string-lessthan-very-very-long-entry";
 
       await Promise.all([
         products().create<ProductRecord>({ name: shortName }),
@@ -707,7 +685,7 @@ describe("filters", () => {
               {
                 field: "name",
                 operator: "Contains",
-                value: base,
+                value: "string-lessthan",
               },
               {
                 field: "name",
@@ -726,11 +704,9 @@ describe("filters", () => {
     });
 
     it("less than or equal", async () => {
-      const base = `string-lessthaneq-${uniqueSeed()}`;
-
-      const shortName = `${base}-short`;
-      const mediumName = `${base}-medium-length`;
-      const longName = `${base}-very-very-long-entry`;
+      const shortName = "string-lessthaneq-short";
+      const mediumName = "string-lessthaneq-medium-length";
+      const longName = "string-lessthaneq-very-very-long-entry";
 
       await Promise.all([
         products().create<ProductRecord>({ name: shortName }),
@@ -747,7 +723,7 @@ describe("filters", () => {
               {
                 field: "name",
                 operator: "Contains",
-                value: base,
+                value: "string-lessthaneq",
               },
               {
                 field: "name",
@@ -769,11 +745,9 @@ describe("filters", () => {
     });
 
     it("greater than", async () => {
-      const base = `string-greaterthan-${uniqueSeed()}`;
-
-      const shortName = `${base}-short`;
-      const mediumName = `${base}-medium-length`;
-      const longName = `${base}-very-very-long-entry`;
+      const shortName = "string-greaterthan-short";
+      const mediumName = "string-greaterthan-medium-length";
+      const longName = "string-greaterthan-very-very-long-entry";
 
       await Promise.all([
         products().create<ProductRecord>({ name: shortName }),
@@ -790,7 +764,7 @@ describe("filters", () => {
               {
                 field: "name",
                 operator: "Contains",
-                value: base,
+                value: "string-greaterthan",
               },
               {
                 field: "name",
@@ -809,11 +783,9 @@ describe("filters", () => {
     });
 
     it("greater than or equal", async () => {
-      const base = `string-greaterthaneq-${uniqueSeed()}`;
-
-      const shortName = `${base}-short`;
-      const mediumName = `${base}-medium-length`;
-      const longName = `${base}-very-very-long-entry`;
+      const shortName = "string-greaterthaneq-short";
+      const mediumName = "string-greaterthaneq-medium-length";
+      const longName = "string-greaterthaneq-very-very-long-entry";
 
       await Promise.all([
         products().create<ProductRecord>({ name: shortName }),
@@ -830,7 +802,7 @@ describe("filters", () => {
               {
                 field: "name",
                 operator: "Contains",
-                value: base,
+                value: "string-greaterthaneq",
               },
               {
                 field: "name",
@@ -852,11 +824,9 @@ describe("filters", () => {
     });
 
     it("match", async () => {
-      const base = `string-match-${uniqueSeed()}`;
-
       await Promise.all([
-        products().create<ProductRecord>({ name: `${base}-target` }),
-        products().create<ProductRecord>({ name: `${base}-other` }),
+        products().create<ProductRecord>({ name: "string-match-target" }),
+        products().create<ProductRecord>({ name: "string-match-other" }),
       ]);
 
       const productsResult = await products().list<ProductRecord>({
@@ -867,7 +837,7 @@ describe("filters", () => {
               {
                 field: "name",
                 operator: "Match",
-                value: `${base}-target`,
+                value: "string-match-target",
               },
             ],
           },
@@ -877,7 +847,7 @@ describe("filters", () => {
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-target` }),
+          expect.objectContaining({ name: "string-match-target" }),
         ])
       );
     });
