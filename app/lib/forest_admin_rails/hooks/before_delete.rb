@@ -11,15 +11,15 @@ module ForestAdminRails
         agent.customize_collection(BANK_ACCOUNT_COLLECTION) do |collection|
           collection.add_hook('Before', 'Delete') do |context|
             # Prevent deletion of active accounts
-            record = context.collection.get(context.filter)
-            if record['status'] == 'active'
-              raise ForestAdminDatasourceToolkit::Exceptions::ForbiddenError, 'Cannot delete active bank account'
-            end
+            # record = context.collection.get(context.filter)
+            # if record['status'] == 'active'
+            #   raise ForestAdminDatasourceToolkit::Exceptions::ForbiddenError, 'Cannot delete active bank account'
+            # end
 
-            # Require admin permission for deletion
-            unless context.caller.permission_level == 'admin'
-              raise ForestAdminDatasourceToolkit::Exceptions::ForbiddenError, 'Only admins can delete bank accounts'
-            end
+            # # Require admin permission for deletion
+            # unless context.caller.permission_level == 'admin'
+            #   raise ForestAdminDatasourceToolkit::Exceptions::ForbiddenError, 'Only admins can delete bank accounts'
+            # end
           end
         end
       end

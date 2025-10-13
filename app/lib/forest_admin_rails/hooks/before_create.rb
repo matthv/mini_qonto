@@ -17,9 +17,6 @@ module ForestAdminRails
                 context.raise_validation_error('Invalid IBAN format')
               end
             end
-
-            # Set default status if not provided
-            context.data['status'] ||= 'pending'
           end
         end
       end
