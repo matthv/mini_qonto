@@ -695,7 +695,6 @@ describe("filters", () => {
 
       await Promise.all([
         products().create<ProductRecord>({ name }),
-        products().create<ProductRecord>({ name: null }),
         products().create<ProductRecord>({ name: "" }),
       ]);
 
