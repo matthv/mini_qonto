@@ -669,7 +669,7 @@ describe("filters", () => {
               {
                 field: "name",
                 operator: "ShorterThan",
-                value: 15,
+                value: base.length + "-tiny".length + 2,
               },
               {
                 field: "created_at",
@@ -690,7 +690,7 @@ describe("filters", () => {
     });
 
     it("present", async () => {
-      const createdAfter = new Date().toISOString();
+      const updated_at = new Date().toISOString();
       const name = `string-present-${uniqueSeed()}`;
 
       await Promise.all([
@@ -708,9 +708,9 @@ describe("filters", () => {
                 operator: "Present",
               },
               {
-                field: "created_at",
+                field: "updated_at",
                 operator: "After",
-                value: createdAfter,
+                value: updated_at,
               },
             ],
           },
@@ -806,12 +806,17 @@ describe("filters", () => {
       const createdAfter = new Date().toISOString();
       const base = `string-lessthan-${uniqueSeed()}`;
 
+      const shortName = `${base}-s`;
+      const mediumName = `${base}-medium-length`;
+      const longName = `${base}-very-very-long-entry`;
+
       await Promise.all([
-        products().create<ProductRecord>({ name: `${base}-a` }),
-        products().create<ProductRecord>({ name: `${base}-b` }),
-        products().create<ProductRecord>({ name: `${base}-c` }),
+        products().create<ProductRecord>({ name: shortName }),
+        products().create<ProductRecord>({ name: mediumName }),
+        products().create<ProductRecord>({ name: longName }),
       ]);
 
+      const threshold = mediumName.length;
       const productsResult = await products().list<ProductRecord>({
         filters: {
           conditionTree: {
@@ -825,7 +830,7 @@ describe("filters", () => {
               {
                 field: "name",
                 operator: "LessThan",
-                value: `${base}-b`,
+                value: threshold,
               },
               {
                 field: "created_at",
@@ -839,7 +844,7 @@ describe("filters", () => {
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
-        expect.arrayContaining([expect.objectContaining({ name: `${base}-a` })])
+        expect.arrayContaining([expect.objectContaining({ name: shortName })])
       );
     });
 
@@ -847,12 +852,17 @@ describe("filters", () => {
       const createdAfter = new Date().toISOString();
       const base = `string-lessthaneq-${uniqueSeed()}`;
 
+      const shortName = `${base}-short`;
+      const mediumName = `${base}-medium-length`;
+      const longName = `${base}-very-very-long-entry`;
+
       await Promise.all([
-        products().create<ProductRecord>({ name: `${base}-a` }),
-        products().create<ProductRecord>({ name: `${base}-b` }),
-        products().create<ProductRecord>({ name: `${base}-c` }),
+        products().create<ProductRecord>({ name: shortName }),
+        products().create<ProductRecord>({ name: mediumName }),
+        products().create<ProductRecord>({ name: longName }),
       ]);
 
+      const threshold = mediumName.length;
       const productsResult = await products().list<ProductRecord>({
         filters: {
           conditionTree: {
@@ -866,7 +876,7 @@ describe("filters", () => {
               {
                 field: "name",
                 operator: "LessThanOrEqual",
-                value: `${base}-b`,
+                value: threshold,
               },
               {
                 field: "created_at",
@@ -881,8 +891,8 @@ describe("filters", () => {
       expect(productsResult).toHaveLength(2);
       expect(productsResult).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-a` }),
-          expect.objectContaining({ name: `${base}-b` }),
+          expect.objectContaining({ name: shortName }),
+          expect.objectContaining({ name: mediumName }),
         ])
       );
     });
@@ -891,12 +901,17 @@ describe("filters", () => {
       const createdAfter = new Date().toISOString();
       const base = `string-greaterthan-${uniqueSeed()}`;
 
+      const shortName = `${base}-short`;
+      const mediumName = `${base}-medium-length`;
+      const longName = `${base}-very-very-long-entry`;
+
       await Promise.all([
-        products().create<ProductRecord>({ name: `${base}-a` }),
-        products().create<ProductRecord>({ name: `${base}-b` }),
-        products().create<ProductRecord>({ name: `${base}-c` }),
+        products().create<ProductRecord>({ name: shortName }),
+        products().create<ProductRecord>({ name: mediumName }),
+        products().create<ProductRecord>({ name: longName }),
       ]);
 
+      const threshold = mediumName.length;
       const productsResult = await products().list<ProductRecord>({
         filters: {
           conditionTree: {
@@ -910,7 +925,7 @@ describe("filters", () => {
               {
                 field: "name",
                 operator: "GreaterThan",
-                value: `${base}-b`,
+                value: threshold,
               },
               {
                 field: "created_at",
@@ -924,7 +939,7 @@ describe("filters", () => {
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
-        expect.arrayContaining([expect.objectContaining({ name: `${base}-c` })])
+        expect.arrayContaining([expect.objectContaining({ name: longName })])
       );
     });
 
@@ -932,12 +947,17 @@ describe("filters", () => {
       const createdAfter = new Date().toISOString();
       const base = `string-greaterthaneq-${uniqueSeed()}`;
 
+      const shortName = `${base}-short`;
+      const mediumName = `${base}-medium-length`;
+      const longName = `${base}-very-very-long-entry`;
+
       await Promise.all([
-        products().create<ProductRecord>({ name: `${base}-a` }),
-        products().create<ProductRecord>({ name: `${base}-b` }),
-        products().create<ProductRecord>({ name: `${base}-c` }),
+        products().create<ProductRecord>({ name: shortName }),
+        products().create<ProductRecord>({ name: mediumName }),
+        products().create<ProductRecord>({ name: longName }),
       ]);
 
+      const threshold = mediumName.length;
       const productsResult = await products().list<ProductRecord>({
         filters: {
           conditionTree: {
@@ -951,7 +971,7 @@ describe("filters", () => {
               {
                 field: "name",
                 operator: "GreaterThanOrEqual",
-                value: `${base}-b`,
+                value: threshold,
               },
               {
                 field: "created_at",
@@ -966,8 +986,8 @@ describe("filters", () => {
       expect(productsResult).toHaveLength(2);
       expect(productsResult).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-b` }),
-          expect.objectContaining({ name: `${base}-c` }),
+          expect.objectContaining({ name: mediumName }),
+          expect.objectContaining({ name: longName }),
         ])
       );
     });
