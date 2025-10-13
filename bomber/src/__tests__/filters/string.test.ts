@@ -1,8 +1,13 @@
 import { SelectOptions } from "@forestadmin-experimental/agent-nodejs-testing/dist/remote-agent-client/types";
-import { mountAgentClient } from "../agent-setup";
+import { mountAgentClient } from "../../agent-setup";
 
 type AgentClient = Awaited<ReturnType<typeof mountAgentClient>>;
-type ProductRecord = { id: string; name: string | null };
+type ProductRecord = {
+  id: string | number;
+  name: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+};
 
 const PRODUCTS_COLLECTION = "Biller__Product";
 
