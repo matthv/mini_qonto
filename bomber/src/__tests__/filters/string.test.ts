@@ -18,14 +18,17 @@ describe("filters", () => {
     clientAgent = await mountAgentClient();
   });
 
+  beforeEach(async () => {
+    const allProducts = await products().list<ProductRecord>();
+    await products().delete(allProducts.map((product) => product.id as number));
+  });
+
   const products = () => clientAgent.collection(PRODUCTS_COLLECTION);
   const uniqueSeed = () =>
     `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 
   describe("type string", () => {
     it("contains", async () => {
-      const createdAfter = new Date().toISOString();
-
       await Promise.all([
         products().create<ProductRecord>({
           name: "Test-scra",
@@ -54,11 +57,6 @@ describe("filters", () => {
                 operator: "Contains",
                 value: "Test-scra",
               },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
-              },
             ],
           },
         },
@@ -76,8 +74,6 @@ describe("filters", () => {
     });
 
     it("equal", async () => {
-      const createdAfter = new Date().toISOString();
-
       await Promise.all([
         products().create<ProductRecord>({ name: "string-equal-target" }),
         products().create<ProductRecord>({ name: "string-equal-other" }),
@@ -93,11 +89,6 @@ describe("filters", () => {
                 operator: "Equal",
                 value: "string-equal-target",
               },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
-              },
             ],
           },
         },
@@ -112,8 +103,6 @@ describe("filters", () => {
     });
 
     it("starts with", async () => {
-      const createdAfter = new Date().toISOString();
-
       await Promise.all([
         products().create<ProductRecord>({ name: "string-startswith-match-a" }),
         products().create<ProductRecord>({ name: "string-startswith-match-b" }),
@@ -130,11 +119,6 @@ describe("filters", () => {
                 operator: "StartsWith",
                 value: "string-startswith",
               },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
-              },
             ],
           },
         },
@@ -150,8 +134,6 @@ describe("filters", () => {
     });
 
     it("ends with", async () => {
-      const createdAfter = new Date().toISOString();
-
       await Promise.all([
         products().create<ProductRecord>({
           name: "string-endswith-match-alpha",
@@ -173,11 +155,6 @@ describe("filters", () => {
                 operator: "EndsWith",
                 value: "match-beta",
               },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
-              },
             ],
           },
         },
@@ -192,8 +169,6 @@ describe("filters", () => {
     });
 
     it("not contains", async () => {
-      const createdAfter = new Date().toISOString();
-
       await Promise.all([
         products().create<ProductRecord>({ name: "string-notcontains-keep-a" }),
         products().create<ProductRecord>({ name: "string-notcontains-keep-b" }),
@@ -217,11 +192,6 @@ describe("filters", () => {
                 operator: "NotContains",
                 value: "excluded",
               },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
-              },
             ],
           },
         },
@@ -237,8 +207,6 @@ describe("filters", () => {
     });
 
     it("in", async () => {
-      const createdAfter = new Date().toISOString();
-
       await Promise.all([
         products().create<ProductRecord>({ name: "string-in-choice-a" }),
         products().create<ProductRecord>({ name: "string-in-choice-b" }),
@@ -255,11 +223,6 @@ describe("filters", () => {
                 operator: "In",
                 value: ["string-in-choice-a", "string-in-choice-c"],
               },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
-              },
             ],
           },
         },
@@ -275,8 +238,6 @@ describe("filters", () => {
     });
 
     it("blank", async () => {
-      const createdAfter = new Date().toISOString();
-
       await Promise.all([
         products().create<ProductRecord>({ name: "" }),
         products().create<ProductRecord>({ name: "string-blank-other" }),
@@ -291,11 +252,6 @@ describe("filters", () => {
                 field: "name",
                 operator: "Blank",
               },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
-              },
             ],
           },
         },
@@ -308,7 +264,6 @@ describe("filters", () => {
     });
 
     it("not equal", async () => {
-      const createdAfter = new Date().toISOString();
       const prefix = `string-notequal-${uniqueSeed()}`;
 
       await Promise.all([
@@ -331,11 +286,6 @@ describe("filters", () => {
                 operator: "NotEqual",
                 value: `${prefix}-exclude`,
               },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
-              },
             ],
           },
         },
@@ -350,7 +300,6 @@ describe("filters", () => {
     });
 
     it("not in", async () => {
-      const createdAfter = new Date().toISOString();
       const prefix = `string-notin-${uniqueSeed()}`;
 
       await Promise.all([
@@ -374,11 +323,6 @@ describe("filters", () => {
                 operator: "NotIn",
                 value: [`${prefix}-exclude-a`, `${prefix}-exclude-b`],
               },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
-              },
             ],
           },
         },
@@ -393,7 +337,6 @@ describe("filters", () => {
     });
 
     it("i contains", async () => {
-      const createdAfter = new Date().toISOString();
       const marker = `string-icontains-${uniqueSeed()}`;
 
       await Promise.all([
@@ -414,11 +357,6 @@ describe("filters", () => {
                 operator: "IContains",
                 value: marker,
               },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
-              },
             ],
           },
         },
@@ -434,7 +372,6 @@ describe("filters", () => {
     });
 
     it("i starts with", async () => {
-      const createdAfter = new Date().toISOString();
       const marker = `string-istarts-${uniqueSeed()}`;
 
       await Promise.all([
@@ -455,11 +392,6 @@ describe("filters", () => {
                 operator: "IStartsWith",
                 value: marker,
               },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
-              },
             ],
           },
         },
@@ -475,7 +407,6 @@ describe("filters", () => {
     });
 
     it("i ends with", async () => {
-      const createdAfter = new Date().toISOString();
       const suffix = `string-iends-${uniqueSeed()}`;
 
       await Promise.all([
@@ -496,11 +427,6 @@ describe("filters", () => {
                 operator: "IEndsWith",
                 value: suffix,
               },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
-              },
             ],
           },
         },
@@ -518,7 +444,6 @@ describe("filters", () => {
     });
 
     it("like", async () => {
-      const createdAfter = new Date().toISOString();
       const base = `string-like-${uniqueSeed()}`;
 
       await Promise.all([
@@ -537,11 +462,6 @@ describe("filters", () => {
                 operator: "Like",
                 value: `${base}-target-%`,
               },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
-              },
             ],
           },
         },
@@ -557,7 +477,6 @@ describe("filters", () => {
     });
 
     it("i like", async () => {
-      const createdAfter = new Date().toISOString();
       const base = `string-ilike-${uniqueSeed()}`;
 
       await Promise.all([
@@ -578,11 +497,6 @@ describe("filters", () => {
                 operator: "ILike",
                 value: `${base.toUpperCase()}-TARGET-%`,
               },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
-              },
             ],
           },
         },
@@ -600,7 +514,6 @@ describe("filters", () => {
     });
 
     it("longer than", async () => {
-      const createdAfter = new Date().toISOString();
       const base = `string-longer-${uniqueSeed()}`;
 
       await Promise.all([
@@ -625,11 +538,6 @@ describe("filters", () => {
                 operator: "LongerThan",
                 value: 25,
               },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
-              },
             ],
           },
         },
@@ -646,7 +554,6 @@ describe("filters", () => {
     });
 
     it("shorter than", async () => {
-      const createdAfter = new Date().toISOString();
       const base = `string-shorter-${uniqueSeed()}`;
 
       await Promise.all([
@@ -671,11 +578,6 @@ describe("filters", () => {
                 operator: "ShorterThan",
                 value: base.length + "-tiny".length + 2,
               },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
-              },
             ],
           },
         },
@@ -690,7 +592,6 @@ describe("filters", () => {
     });
 
     it("present", async () => {
-      const updated_at = new Date().toISOString();
       const name = `string-present-${uniqueSeed()}`;
 
       await Promise.all([
@@ -707,11 +608,6 @@ describe("filters", () => {
                 field: "name",
                 operator: "Present",
               },
-              {
-                field: "updated_at",
-                operator: "After",
-                value: updated_at,
-              },
             ],
           },
         },
@@ -724,8 +620,6 @@ describe("filters", () => {
     });
 
     it("missing", async () => {
-      const createdAfter = new Date().toISOString();
-
       await Promise.all([
         products().create<ProductRecord>({ name: null }),
         products().create<ProductRecord>({
@@ -742,11 +636,6 @@ describe("filters", () => {
                 field: "name",
                 operator: "Missing",
               },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
-              },
             ],
           },
         },
@@ -759,7 +648,6 @@ describe("filters", () => {
     });
 
     it("not i contains", async () => {
-      const createdAfter = new Date().toISOString();
       const base = `string-noticontains-${uniqueSeed()}`;
 
       await Promise.all([
@@ -784,11 +672,6 @@ describe("filters", () => {
                 operator: "NotIContains",
                 value: "excluded",
               },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
-              },
             ],
           },
         },
@@ -803,7 +686,6 @@ describe("filters", () => {
     });
 
     it("less than", async () => {
-      const createdAfter = new Date().toISOString();
       const base = `string-lessthan-${uniqueSeed()}`;
 
       const shortName = `${base}-s`;
@@ -832,11 +714,6 @@ describe("filters", () => {
                 operator: "LessThan",
                 value: threshold,
               },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
-              },
             ],
           },
         },
@@ -849,7 +726,6 @@ describe("filters", () => {
     });
 
     it("less than or equal", async () => {
-      const createdAfter = new Date().toISOString();
       const base = `string-lessthaneq-${uniqueSeed()}`;
 
       const shortName = `${base}-short`;
@@ -878,11 +754,6 @@ describe("filters", () => {
                 operator: "LessThanOrEqual",
                 value: threshold,
               },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
-              },
             ],
           },
         },
@@ -898,7 +769,6 @@ describe("filters", () => {
     });
 
     it("greater than", async () => {
-      const createdAfter = new Date().toISOString();
       const base = `string-greaterthan-${uniqueSeed()}`;
 
       const shortName = `${base}-short`;
@@ -927,11 +797,6 @@ describe("filters", () => {
                 operator: "GreaterThan",
                 value: threshold,
               },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
-              },
             ],
           },
         },
@@ -944,7 +809,6 @@ describe("filters", () => {
     });
 
     it("greater than or equal", async () => {
-      const createdAfter = new Date().toISOString();
       const base = `string-greaterthaneq-${uniqueSeed()}`;
 
       const shortName = `${base}-short`;
@@ -973,11 +837,6 @@ describe("filters", () => {
                 operator: "GreaterThanOrEqual",
                 value: threshold,
               },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
-              },
             ],
           },
         },
@@ -993,7 +852,6 @@ describe("filters", () => {
     });
 
     it("match", async () => {
-      const createdAfter = new Date().toISOString();
       const base = `string-match-${uniqueSeed()}`;
 
       await Promise.all([
@@ -1010,11 +868,6 @@ describe("filters", () => {
                 field: "name",
                 operator: "Match",
                 value: `${base}-target`,
-              },
-              {
-                field: "created_at",
-                operator: "After",
-                value: createdAfter,
               },
             ],
           },
