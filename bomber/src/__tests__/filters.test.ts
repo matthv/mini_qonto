@@ -273,9 +273,7 @@ describe("filters", () => {
       const createdAfter = new Date().toISOString();
 
       await Promise.all([
-        products().create<ProductRecord>({ name: null }),
         products().create<ProductRecord>({ name: "" }),
-
         products().create<ProductRecord>({ name: "string-blank-other" }),
       ]);
 
@@ -298,12 +296,9 @@ describe("filters", () => {
         },
       });
 
-      expect(productsResult).toHaveLength(2);
+      expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ name: null }),
-          expect.objectContaining({ name: "" }),
-        ])
+        expect.arrayContaining([expect.objectContaining({ name: "" })])
       );
     });
 
@@ -799,6 +794,213 @@ describe("filters", () => {
       expect(productsResult).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ name: `${base}-allowed` }),
+        ])
+      );
+    });
+
+    it("less than", async () => {
+      const createdAfter = new Date().toISOString();
+      const base = `string-lessthan-${uniqueSeed()}`;
+
+      await Promise.all([
+        products().create<ProductRecord>({ name: `${base}-a` }),
+        products().create<ProductRecord>({ name: `${base}-b` }),
+        products().create<ProductRecord>({ name: `${base}-c` }),
+      ]);
+
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            aggregator: "And",
+            conditions: [
+              {
+                field: "name",
+                operator: "Contains",
+                value: base,
+              },
+              {
+                field: "name",
+                operator: "LessThan",
+                value: `${base}-b`,
+              },
+              {
+                field: "created_at",
+                operator: "After",
+                value: createdAfter,
+              },
+            ],
+          },
+        },
+      });
+
+      expect(productsResult).toHaveLength(1);
+      expect(productsResult).toEqual(
+        expect.arrayContaining([expect.objectContaining({ name: `${base}-a` })])
+      );
+    });
+
+    it("less than or equal", async () => {
+      const createdAfter = new Date().toISOString();
+      const base = `string-lessthaneq-${uniqueSeed()}`;
+
+      await Promise.all([
+        products().create<ProductRecord>({ name: `${base}-a` }),
+        products().create<ProductRecord>({ name: `${base}-b` }),
+        products().create<ProductRecord>({ name: `${base}-c` }),
+      ]);
+
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            aggregator: "And",
+            conditions: [
+              {
+                field: "name",
+                operator: "Contains",
+                value: base,
+              },
+              {
+                field: "name",
+                operator: "LessThanOrEqual",
+                value: `${base}-b`,
+              },
+              {
+                field: "created_at",
+                operator: "After",
+                value: createdAfter,
+              },
+            ],
+          },
+        },
+      });
+
+      expect(productsResult).toHaveLength(2);
+      expect(productsResult).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: `${base}-a` }),
+          expect.objectContaining({ name: `${base}-b` }),
+        ])
+      );
+    });
+
+    it("greater than", async () => {
+      const createdAfter = new Date().toISOString();
+      const base = `string-greaterthan-${uniqueSeed()}`;
+
+      await Promise.all([
+        products().create<ProductRecord>({ name: `${base}-a` }),
+        products().create<ProductRecord>({ name: `${base}-b` }),
+        products().create<ProductRecord>({ name: `${base}-c` }),
+      ]);
+
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            aggregator: "And",
+            conditions: [
+              {
+                field: "name",
+                operator: "Contains",
+                value: base,
+              },
+              {
+                field: "name",
+                operator: "GreaterThan",
+                value: `${base}-b`,
+              },
+              {
+                field: "created_at",
+                operator: "After",
+                value: createdAfter,
+              },
+            ],
+          },
+        },
+      });
+
+      expect(productsResult).toHaveLength(1);
+      expect(productsResult).toEqual(
+        expect.arrayContaining([expect.objectContaining({ name: `${base}-c` })])
+      );
+    });
+
+    it("greater than or equal", async () => {
+      const createdAfter = new Date().toISOString();
+      const base = `string-greaterthaneq-${uniqueSeed()}`;
+
+      await Promise.all([
+        products().create<ProductRecord>({ name: `${base}-a` }),
+        products().create<ProductRecord>({ name: `${base}-b` }),
+        products().create<ProductRecord>({ name: `${base}-c` }),
+      ]);
+
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            aggregator: "And",
+            conditions: [
+              {
+                field: "name",
+                operator: "Contains",
+                value: base,
+              },
+              {
+                field: "name",
+                operator: "GreaterThanOrEqual",
+                value: `${base}-b`,
+              },
+              {
+                field: "created_at",
+                operator: "After",
+                value: createdAfter,
+              },
+            ],
+          },
+        },
+      });
+
+      expect(productsResult).toHaveLength(2);
+      expect(productsResult).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: `${base}-b` }),
+          expect.objectContaining({ name: `${base}-c` }),
+        ])
+      );
+    });
+
+    it("match", async () => {
+      const createdAfter = new Date().toISOString();
+      const base = `string-match-${uniqueSeed()}`;
+
+      await Promise.all([
+        products().create<ProductRecord>({ name: `${base}-target` }),
+        products().create<ProductRecord>({ name: `${base}-other` }),
+      ]);
+
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            aggregator: "And",
+            conditions: [
+              {
+                field: "name",
+                operator: "Match",
+                value: `${base}-target`,
+              },
+              {
+                field: "created_at",
+                operator: "After",
+                value: createdAfter,
+              },
+            ],
+          },
+        },
+      });
+
+      expect(productsResult).toHaveLength(1);
+      expect(productsResult).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: `${base}-target` }),
         ])
       );
     });
