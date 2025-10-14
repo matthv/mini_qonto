@@ -1,4 +1,5 @@
 import { mountAgentClient } from "../../agent-setup";
+import { clearCollections } from "../helpers";
 
 type AgentClient = Awaited<ReturnType<typeof mountAgentClient>>;
 type ProductRecord = {
@@ -38,26 +39,37 @@ const startOfQuarter = (date: Date) => {
   return new Date(date.getFullYear(), quarterStartMonth, 1);
 };
 const startOfYear = (date: Date) => new Date(date.getFullYear(), 0, 1);
-const dateInPreviousWeek = () => toMidday(daysAgo(8));
-const dateSameWeekdayPreviousWeek = () => toMidday(daysAgo(7));
+const dateInPreviousWeek = () => toMidday(daysAgo(4));
+const dateSameWeekdayPreviousWeek = () => toMidday(daysAgo(6));
 const dateTwoWeeksAgo = () => toMidday(daysAgo(15));
 const dateInPreviousMonth = () =>
   toMidday(addMonths(startOfMonth(new Date()), -1));
+const dateInPreviousMonthPlusOneDay = () => addDays(dateInPreviousMonth(), 1);
 const dateTwoMonthsAgo = () =>
   toMidday(addMonths(startOfMonth(new Date()), -2));
 const dateInPreviousQuarter = () =>
   toMidday(addMonths(startOfQuarter(new Date()), -3));
+const dateInPreviousQuarterPlusOneDay = () =>
+  addDays(dateInPreviousQuarter(), 1);
 const dateTwoQuartersAgo = () =>
   toMidday(addMonths(startOfQuarter(new Date()), -6));
 const dateInPreviousYear = () => {
   const now = new Date();
   return toMidday(new Date(now.getFullYear() - 1, 6, 15));
 };
+const startOfThisYear = () => startOfYear(new Date());
+const addDays = (date: Date, days: number) => {
+  const copy = new Date(date);
+  copy.setDate(copy.getDate() + days);
+  return copy;
+};
+const startOfThisYearPlusOneDay = () => addDays(startOfThisYear(), 1);
 const dateSameDayPreviousYear = () => toMidday(addYears(new Date(), -1));
 const dateTwoYearsAgo = () => {
   const now = new Date();
   return toMidday(new Date(now.getFullYear() - 2, 6, 15));
 };
+const dateToday = () => toMidday(new Date());
 
 describe("filters", () => {
   let clientAgent: AgentClient;
@@ -66,9 +78,11 @@ describe("filters", () => {
     clientAgent = await mountAgentClient();
   });
 
+  beforeEach(async () => {
+    await clearCollections(clientAgent);
+  });
+
   const products = () => clientAgent.collection(PRODUCTS_COLLECTION);
-  const uniqueSeed = () =>
-    `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 
   const createProductAt = async (name: string, createdAt: Date) => {
     const payload = {
@@ -87,407 +101,460 @@ describe("filters", () => {
     return { id: productId, name };
   };
 
-  const listByConditions = (base: string, ...dateConditions: any) => {
-    return products().list<ProductRecord>({
-      filters: {
-        conditionTree: {
-          aggregator: "And",
-          conditions: [
-            {
-              field: "name",
-              operator: "Contains",
-              value: base,
-            },
-            ...dateConditions,
-          ],
-        },
-      },
-    });
-  };
-
   describe("type date", () => {
     it("after", async () => {
-      const base = `date-after-${uniqueSeed()}`;
-
       await Promise.all([
-        createProductAt(`${base}-earlier`, hoursAgo(3)),
-        createProductAt(`${base}-later`, hoursAgo(0.5)),
+        createProductAt(`earlier`, hoursAgo(3)),
+        createProductAt(`later`, hoursAgo(0.5)),
       ]);
 
       const threshold = hoursAgo(2).toISOString();
-      const productsResult = await listByConditions(base, {
-        field: "created_at",
-        operator: "After",
-        value: threshold,
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            field: "created_at",
+            operator: "After",
+            value: threshold,
+          },
+        },
       });
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-later` }),
-        ])
+        expect.arrayContaining([expect.objectContaining({ name: `later` })])
       );
     });
 
     it("before", async () => {
-      const base = `date-before-${uniqueSeed()}`;
-
       await Promise.all([
-        createProductAt(`${base}-earlier`, hoursAgo(5)),
-        createProductAt(`${base}-later`, hoursAgo(1)),
+        createProductAt(`earlier`, hoursAgo(5)),
+        createProductAt(`later`, hoursAgo(1)),
       ]);
 
       const threshold = hoursAgo(3).toISOString();
-      const productsResult = await listByConditions(base, {
-        field: "created_at",
-        operator: "Before",
-        value: threshold,
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            field: "created_at",
+            operator: "Before",
+            value: threshold,
+          },
+        },
       });
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-earlier` }),
-        ])
+        expect.arrayContaining([expect.objectContaining({ name: `earlier` })])
       );
     });
 
     it("after x hours ago", async () => {
-      const base = `date-after-x-hours-${uniqueSeed()}`;
-
       await Promise.all([
-        createProductAt(`${base}-within`, hoursAgo(3)),
-        createProductAt(`${base}-outside`, hoursAgo(7)),
+        createProductAt(`within`, hoursAgo(3)),
+        createProductAt(`outside`, hoursAgo(7)),
       ]);
 
-      const productsResult = await listByConditions(base, {
-        field: "created_at",
-        operator: "AfterXHoursAgo",
-        value: 5,
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            field: "created_at",
+            operator: "AfterXHoursAgo",
+            value: 5,
+          },
+        },
       });
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-within` }),
-        ])
+        expect.arrayContaining([expect.objectContaining({ name: `within` })])
       );
     });
 
     it("before x hours ago", async () => {
-      const base = `date-before-x-hours-${uniqueSeed()}`;
-
       await Promise.all([
-        createProductAt(`${base}-within`, hoursAgo(7)),
-        createProductAt(`${base}-outside`, hoursAgo(3)),
+        createProductAt(`within`, hoursAgo(7)),
+        createProductAt(`outside`, hoursAgo(3)),
       ]);
 
-      const productsResult = await listByConditions(base, {
-        field: "created_at",
-        operator: "BeforeXHoursAgo",
-        value: 5,
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            field: "created_at",
+            operator: "BeforeXHoursAgo",
+            value: 5,
+          },
+        },
       });
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-within` }),
-        ])
+        expect.arrayContaining([expect.objectContaining({ name: `within` })])
+      );
+    });
+
+    it("before x hours ago", async () => {
+      await Promise.all([
+        createProductAt(`within`, hoursAgo(7)),
+        createProductAt(`outside`, hoursAgo(3)),
+      ]);
+
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            field: "created_at",
+            operator: "BeforeXHoursAgo",
+            value: 5,
+          },
+        },
+      });
+
+      expect(productsResult).toHaveLength(1);
+      expect(productsResult).toEqual(
+        expect.arrayContaining([expect.objectContaining({ name: `within` })])
       );
     });
 
     it("past", async () => {
-      const base = `date-past-${uniqueSeed()}`;
-
       await Promise.all([
-        createProductAt(`${base}-past`, hoursAgo(2)),
-        createProductAt(`${base}-future`, hoursAhead(2)),
+        createProductAt(`past`, hoursAgo(2)),
+        createProductAt(`future`, hoursAhead(2)),
       ]);
 
-      const productsResult = await listByConditions(base, {
-        field: "created_at",
-        operator: "Past",
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            field: "created_at",
+            operator: "Past",
+          },
+        },
       });
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-past` }),
-        ])
+        expect.arrayContaining([expect.objectContaining({ name: `past` })])
       );
     });
 
     it("future", async () => {
-      const base = `date-future-${uniqueSeed()}`;
-
       await Promise.all([
-        createProductAt(`${base}-future`, hoursAhead(4)),
-        createProductAt(`${base}-past`, hoursAgo(2)),
+        createProductAt(`future`, hoursAhead(4)),
+        createProductAt(`past`, hoursAgo(2)),
       ]);
 
-      const productsResult = await listByConditions(base, {
-        field: "created_at",
-        operator: "Future",
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            field: "created_at",
+            operator: "Future",
+          },
+        },
       });
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-future` }),
-        ])
+        expect.arrayContaining([expect.objectContaining({ name: `future` })])
       );
     });
 
     it("today", async () => {
-      const base = `date-today-${uniqueSeed()}`;
-
       await Promise.all([
-        createProductAt(`${base}-today`, new Date()),
-        createProductAt(`${base}-older`, daysAgo(2)),
+        createProductAt(`today`, new Date()),
+        createProductAt(`older`, daysAgo(2)),
       ]);
 
-      const productsResult = await listByConditions(base, {
-        field: "created_at",
-        operator: "Today",
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            field: "created_at",
+            operator: "Today",
+          },
+        },
       });
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-today` }),
-        ])
+        expect.arrayContaining([expect.objectContaining({ name: `today` })])
       );
     });
 
     it("yesterday", async () => {
-      const base = `date-yesterday-${uniqueSeed()}`;
-
       await Promise.all([
-        createProductAt(`${base}-yesterday`, daysAgo(1)),
-        createProductAt(`${base}-older`, daysAgo(3)),
+        createProductAt(`yesterday`, daysAgo(1)),
+        createProductAt(`older`, daysAgo(3)),
       ]);
 
-      const productsResult = await listByConditions(base, {
-        field: "created_at",
-        operator: "Yesterday",
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            field: "created_at",
+            operator: "Yesterday",
+          },
+        },
       });
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-yesterday` }),
-        ])
+        expect.arrayContaining([expect.objectContaining({ name: `yesterday` })])
       );
     });
 
     it("previous x days", async () => {
-      const base = `date-previous-x-days-${uniqueSeed()}`;
-
       await Promise.all([
-        createProductAt(`${base}-match`, daysAgo(2)),
-        createProductAt(`${base}-older`, daysAgo(5)),
+        createProductAt(`previous-x-days-match`, daysAgo(2)),
+        createProductAt(`previous-x-days-older`, daysAgo(5)),
       ]);
 
-      const productsResult = await listByConditions(base, {
-        field: "created_at",
-        operator: "PreviousXDays",
-        value: 3,
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            field: "created_at",
+            operator: "PreviousXDays",
+            value: 3,
+          },
+        },
       });
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-match` }),
+          expect.objectContaining({ name: `previous-x-days-match` }),
         ])
       );
     });
 
     it("previous x days to date", async () => {
-      const base = `date-previous-x-days-to-date-${uniqueSeed()}`;
-
       await Promise.all([
-        createProductAt(`${base}-match`, daysAgo(2)),
-        createProductAt(`${base}-older`, daysAgo(5)),
+        createProductAt(`previous-x-days-to-date-match`, daysAgo(2)),
+        createProductAt(`previous-x-days-to-date-older`, daysAgo(5)),
       ]);
 
-      const productsResult = await listByConditions(base, {
-        field: "created_at",
-        operator: "PreviousXDaysToDate",
-        value: 3,
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            field: "created_at",
+            operator: "PreviousXDaysToDate",
+            value: 3,
+          },
+        },
       });
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-match` }),
+          expect.objectContaining({ name: `previous-x-days-to-date-match` }),
         ])
       );
     });
 
     it("previous week", async () => {
-      const base = `date-previous-week-${uniqueSeed()}`;
-
       await Promise.all([
-        createProductAt(`${base}-match`, dateInPreviousWeek()),
-        createProductAt(`${base}-older`, dateTwoWeeksAgo()),
+        createProductAt(`previous-week-match`, dateInPreviousWeek()),
+        createProductAt(`previous-week-older`, dateTwoWeeksAgo()),
       ]);
 
-      const productsResult = await listByConditions(base, {
-        field: "created_at",
-        operator: "PreviousWeek",
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            field: "created_at",
+            operator: "PreviousWeek",
+          },
+        },
       });
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-match` }),
+          expect.objectContaining({ name: `previous-week-match` }),
         ])
       );
     });
 
     it("previous week to date", async () => {
-      const base = `date-previous-week-to-date-${uniqueSeed()}`;
-
       await Promise.all([
-        createProductAt(`${base}-match`, dateSameWeekdayPreviousWeek()),
-        createProductAt(`${base}-older`, dateTwoWeeksAgo()),
+        createProductAt(
+          `previous-week-to-date-match`,
+          dateSameWeekdayPreviousWeek()
+        ),
+        createProductAt(`previous-week-to-date-match-2`, dateToday()),
+        createProductAt(`previous-week-to-date-older`, dateTwoWeeksAgo()),
       ]);
 
-      const productsResult = await listByConditions(base, {
-        field: "created_at",
-        operator: "PreviousWeekToDate",
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            field: "created_at",
+            operator: "PreviousWeekToDate",
+          },
+        },
       });
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-match` }),
+          expect.objectContaining({ name: `previous-week-to-date-match` }),
+          expect.objectContaining({ name: `previous-week-to-date-match-2` }),
         ])
       );
     });
 
     it("previous month", async () => {
-      const base = `date-previous-month-${uniqueSeed()}`;
-
       await Promise.all([
-        createProductAt(`${base}-match`, dateInPreviousMonth()),
-        createProductAt(`${base}-older`, dateTwoMonthsAgo()),
+        createProductAt(`previous-month-match`, dateInPreviousMonth()),
+        createProductAt(`previous-month-older`, dateTwoMonthsAgo()),
       ]);
 
-      const productsResult = await listByConditions(base, {
-        field: "created_at",
-        operator: "PreviousMonth",
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            field: "created_at",
+            operator: "PreviousMonth",
+          },
+        },
       });
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-match` }),
+          expect.objectContaining({ name: `previous-month-match` }),
         ])
       );
     });
 
     it("previous month to date", async () => {
-      const base = `date-previous-month-to-date-${uniqueSeed()}`;
-
       await Promise.all([
-        createProductAt(`${base}-match`, dateInPreviousMonth()),
-        createProductAt(`${base}-older`, dateTwoMonthsAgo()),
+        createProductAt(`previous-month-to-date-match`, dateInPreviousMonth()),
+        createProductAt(
+          `previous-month-to-date-match-1`,
+          dateInPreviousMonthPlusOneDay()
+        ),
+        createProductAt(`previous-month-to-date-match-2`, dateToday()),
+        createProductAt(`previous-month-to-date-older`, dateTwoMonthsAgo()),
       ]);
 
-      const productsResult = await listByConditions(base, {
-        field: "created_at",
-        operator: "PreviousMonthToDate",
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            field: "created_at",
+            operator: "PreviousMonthToDate",
+          },
+        },
       });
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-match` }),
+          expect.objectContaining({ name: `previous-month-to-date-match` }),
+          expect.objectContaining({ name: `previous-month-to-date-match-1` }),
+          expect.objectContaining({ name: `previous-month-to-date-match-2` }),
         ])
       );
     });
 
     it("previous quarter", async () => {
-      const base = `date-previous-quarter-${uniqueSeed()}`;
-
       await Promise.all([
-        createProductAt(`${base}-match`, dateInPreviousQuarter()),
-        createProductAt(`${base}-older`, dateTwoQuartersAgo()),
+        createProductAt(`previous-quarter-match`, dateInPreviousQuarter()),
+        createProductAt(`previous-quarter-older`, dateTwoQuartersAgo()),
       ]);
 
-      const productsResult = await listByConditions(base, {
-        field: "created_at",
-        operator: "PreviousQuarter",
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            field: "created_at",
+            operator: "PreviousQuarter",
+          },
+        },
       });
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-match` }),
+          expect.objectContaining({ name: `previous-quarter-match` }),
         ])
       );
     });
 
     it("previous quarter to date", async () => {
-      const base = `date-previous-quarter-to-date-${uniqueSeed()}`;
-
       await Promise.all([
-        createProductAt(`${base}-match`, dateInPreviousQuarter()),
-        createProductAt(`${base}-older`, dateTwoQuartersAgo()),
+        createProductAt(
+          `previous-quarter-to-date-match-1`,
+          dateInPreviousQuarter()
+        ),
+        createProductAt(
+          `previous-quarter-to-date-match`,
+          dateInPreviousQuarterPlusOneDay()
+        ),
+        createProductAt(`previous-quarter-to-date-match-2`, dateToday()),
+        createProductAt(`previous-quarter-to-date-older`, dateTwoQuartersAgo()),
       ]);
 
-      const productsResult = await listByConditions(base, {
-        field: "created_at",
-        operator: "PreviousQuarterToDate",
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            field: "created_at",
+            operator: "PreviousQuarterToDate",
+          },
+        },
       });
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-match` }),
+          expect.objectContaining({ name: `previous-quarter-to-date-match-1` }),
+          expect.objectContaining({ name: `previous-quarter-to-date-match` }),
+          expect.objectContaining({
+            name: `previous-quarter-to-date-match-2`,
+          }),
         ])
       );
     });
 
     it("previous year", async () => {
-      const base = `date-previous-year-${uniqueSeed()}`;
-
       await Promise.all([
-        createProductAt(`${base}-match`, dateInPreviousYear()),
-        createProductAt(`${base}-older`, dateTwoYearsAgo()),
+        createProductAt(`previous-year-match`, dateInPreviousYear()),
+        createProductAt(`previous-year-older`, dateTwoYearsAgo()),
       ]);
 
-      const productsResult = await listByConditions(base, {
-        field: "created_at",
-        operator: "PreviousYear",
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            field: "created_at",
+            operator: "PreviousYear",
+          },
+        },
       });
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-match` }),
+          expect.objectContaining({ name: `previous-year-match` }),
         ])
       );
     });
 
     it("previous year to date", async () => {
-      const base = `date-previous-year-to-date-${uniqueSeed()}`;
-
       await Promise.all([
-        createProductAt(`${base}-match`, dateSameDayPreviousYear()),
-        createProductAt(`${base}-older`, dateTwoYearsAgo()),
+        createProductAt(
+          `previous-year-to-date-match`,
+          startOfThisYearPlusOneDay()
+        ),
+        createProductAt(`previous-year-to-date-match-2`, dateToday()),
+        createProductAt(`previous-year-to-date-older`, dateTwoYearsAgo()),
       ]);
 
-      const productsResult = await listByConditions(base, {
-        field: "created_at",
-        operator: "PreviousYearToDate",
+      const productsResult = await products().list<ProductRecord>({
+        filters: {
+          conditionTree: {
+            field: "created_at",
+            operator: "PreviousYearToDate",
+          },
+        },
       });
 
-      expect(productsResult).toHaveLength(1);
+      expect(productsResult).toHaveLength(2);
       expect(productsResult).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `${base}-match` }),
+          expect.objectContaining({ name: `previous-year-to-date-match` }),
+          expect.objectContaining({ name: `previous-year-to-date-match-2` }),
         ])
       );
     });
