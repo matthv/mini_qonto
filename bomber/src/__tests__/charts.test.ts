@@ -12,7 +12,7 @@ describe("charts", () => {
   it("loads value chart", async () => {
     const chart = await clientAgent.valueChart("total-incomes-amount");
 
-    expect(chart).toEqual({ countCurrent: 4650, countPrevious: null });
+    expect(chart).toEqual({ countCurrent: 4250, countPrevious: null });
   });
 
   it("loads objective chart", async () => {

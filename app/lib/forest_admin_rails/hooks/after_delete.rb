@@ -11,7 +11,9 @@ module ForestAdminRails
         agent.customize_collection(BANK_ACCOUNT_COLLECTION) do |collection|
           collection.add_hook('After', 'Delete') do |context|
             # Log deletion for audit
-            Rails.logger.warn("Bank account deleted: #{context.record['id']} by user: #{context.caller.id}")
+            if context
+               Rails.logger.warn("Bank account deleted: #{context.record['id']} by user: #{context.caller.id}")
+            end
 
             # Archive the deleted record
             # ArchiveService.archive_bank_account(context.record)
