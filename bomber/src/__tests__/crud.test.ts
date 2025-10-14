@@ -1,5 +1,6 @@
 import { SelectOptions } from "@forestadmin-experimental/agent-nodejs-testing/dist/remote-agent-client/types";
 import { mountAgentClient } from "../agent-setup";
+import { clearCollections } from "./helpers";
 
 type AgentClient = Awaited<ReturnType<typeof mountAgentClient>>;
 type OrganizationRecord = { id: string; name: string };
@@ -13,12 +14,13 @@ describe("crud", () => {
     clientAgent = await mountAgentClient();
   });
 
+  beforeEach(async () => {
+    await clearCollections(clientAgent);
+  });
+
   const organizations = () => clientAgent.collection(ORGANIZATION_COLLECTION);
 
   it("creates a bank account record", async () => {
-    const organization = await organizations().list<OrganizationRecord>();
-    expect(organization.length).toBeGreaterThan(0);
-
     const created = await organizations().create<OrganizationRecord>({
       name: "Test Organization",
     });
