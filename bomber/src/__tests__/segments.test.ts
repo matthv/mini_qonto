@@ -1,4 +1,5 @@
 import { mountAgentClient } from "../agent-setup";
+import { clearCollections } from "./helpers";
 
 type AgentClient = Awaited<ReturnType<typeof mountAgentClient>>;
 type OrganizationRecord = { id: number | string; name: string | null };
@@ -11,6 +12,10 @@ describe("collection segments", () => {
 
   beforeAll(async () => {
     clientAgent = await mountAgentClient();
+  });
+
+  beforeEach(async () => {
+    await clearCollections(clientAgent);
   });
 
   const organizations = () => clientAgent.collection(ORGANIZATION_COLLECTION);
@@ -68,8 +73,5 @@ describe("collection segments", () => {
         },
       });
     expect(organizationWithoutName).toBeDefined();
-
-    await organizations().delete([String(namedOrganization.id)]);
-    await organizations().delete([String(unnamedOrganization.id)]);
   });
 });
