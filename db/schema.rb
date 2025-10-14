@@ -19,8 +19,8 @@ ActiveRecord::Schema[7.0].define(version: 2025_09_16_152502) do
     t.bigint "subject_id"
     t.bigint "organization_id", null: false
     t.string "iban"
-    t.datetime "created_at", default: -> { "now()" }, null: false
-    t.datetime "updated_at", default: -> { "now()" }, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["organization_id"], name: "index_bank_accounts_on_organization_id"
     t.index ["subject_type", "subject_id"], name: "index_bank_accounts_on_subject"
   end

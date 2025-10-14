@@ -1,4 +1,3 @@
-import { SelectOptions } from "@forestadmin-experimental/agent-nodejs-testing/dist/remote-agent-client/types";
 import { mountAgentClient } from "../../agent-setup";
 
 type AgentClient = Awaited<ReturnType<typeof mountAgentClient>>;

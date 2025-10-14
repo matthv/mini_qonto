@@ -3,8 +3,8 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-export const AGENT_PORT = 3000;
-export const SERVER_SANDBOX_PORT = 3311;
+export const AGENT_PORT = process.env.AGENT_PORT as unknown as number || 3000;
+export const SERVER_SANDBOX_PORT = process.env.SERVER_SANDBOX_PORT as unknown as number || 3311;
 
 export function mountAgentClient() {
   return createForestAgentClient({

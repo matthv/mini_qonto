@@ -1,19 +1,12 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Debug Jest (Yarn PnP)",
-            "args": ["--runInBand", "--watchAll=false"],
-            "cwd": "${workspaceFolder}",
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen",
-            // Helpful for TS/ESM source stepping
-            "sourceMaps": true
-        }
-    ]
+  "type": "node",
+  "request": "launch",
+  "name": "Jest (SDK, PnP)",
+  "runtimeExecutable": "node",
+  "runtimeArgs": ["-r", "${workspaceFolder}/.pnp.cjs"],
+  "program": "${workspaceFolder}/.yarn/sdks/jest/bin/jest.js",
+  "args": ["--config", "${workspaceFolder}/jest.config.js", "--runInBand"],
+  "cwd": "${workspaceFolder}",
+  "console": "integratedTerminal",
+  "autoAttachChildProcesses": true
 }
