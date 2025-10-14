@@ -44,11 +44,7 @@ bomber/dist
 bomber/.pnp.cjs
 bomber/.pnp.loader.mjs
 
-bomber/.yarn
-!bomber/.yarn/cache
-!bomber/.yarn/patches
-!bomber/.yarn/plugins
-!bomber/.yarn/releases/*
-!bomber/.yarn/sdks
-!bomber/.yarn/versions
-.bomber/yarn/unplugged
+!bomber/.yarn/releases
+bomber/.yarn/unplugged
+bomber/.yarn/install-state.gz
+bomber/.yarn/sdks
