@@ -1,11 +1,10 @@
-import { create } from "domain";
 import { mountAgentClient } from "../agent-setup";
-import { clearCollections } from "./helpers";
+import { AgentClient, clearCollections } from "./helpers";
 
-type AgentClient = Awaited<ReturnType<typeof mountAgentClient>>;
 type OrganizationRecord = { id: number | string; name: string | null };
 
 const ORGANIZATION_COLLECTION = "Api__OrganizationsView";
+const BANK_ACCOUNTS_COLLECTION = "Api__BankAccount";
 
 
 describe("search", () => {
@@ -59,5 +58,21 @@ describe("search", () => {
     });
     expect(lastOrgSearch).toBeDefined();
     expect(lastOrgSearch.id).toStrictEqual(org2.id);
+  });
+
+
+  it("search bank accounts by identifier (smart field)", async () => {
+    const accounts = clientAgent.collection(BANK_ACCOUNTS_COLLECTION);
+    const organizations = clientAgent.collection(ORGANIZATION_COLLECTION);
+    
+    const org = await organizations.create<OrganizationRecord>({ name: "org"});
+    await accounts.create({ id: 1, iban: "FR76 1234", organization_id: org.id });
+    const account2 = await accounts.create({ id: 2, iban: "FR76 5678", organization_id: org.id });
+
+    const [searchResult] = await accounts.list({
+      search: `2_5678`,
+    });
+    expect(searchResult).toBeDefined();
+    expect(searchResult.id).toStrictEqual(account2.id);
   });
 });
