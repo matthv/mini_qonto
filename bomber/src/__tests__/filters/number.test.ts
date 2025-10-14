@@ -1,14 +1,14 @@
 import { mountAgentClient } from "../../agent-setup";
 
 type AgentClient = Awaited<ReturnType<typeof mountAgentClient>>;
-type ProductRecord = {
+type IncomeRecord = {
   id: string | number;
-  name: string | null;
-  created_at?: string | null;
-  updated_at?: string | null;
+  amount: number | null;
 };
 
-const PRODUCTS_COLLECTION = "Biller__Product";
+const INCOME_COLLECTION = "Api__Income";
+const BANK_ACCOUNT_COLLECTION = "Api__BankAccount";
+const ORGANIZATION_COLLECTION = "Api__Organization";
 
 describe("filters", () => {
   let clientAgent: AgentClient;
@@ -17,242 +17,250 @@ describe("filters", () => {
     clientAgent = await mountAgentClient();
   });
 
-  const products = () => clientAgent.collection(PRODUCTS_COLLECTION);
-  const uniqueSeed = () =>
-    `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
-  const toNumericId = (record: ProductRecord) => {
-    const numericId = Number(record.id);
-    if (Number.isNaN(numericId)) {
-      throw new Error(`Record id ${record.id} is not numeric`);
+  const incomes = () => clientAgent.collection(INCOME_COLLECTION);
+  const bankAccounts = () => clientAgent.collection(BANK_ACCOUNT_COLLECTION);
+  const organizations = () => clientAgent.collection(ORGANIZATION_COLLECTION);
+
+  beforeEach(async () => {
+    const allIncomes = await incomes().list<IncomeRecord>();
+    if (allIncomes.length > 0) {
+      await incomes().delete(allIncomes.map((income) => String(income.id)));
     }
-    return numericId;
-  };
-  const listWithBase = async (
-    base: string,
-    createdAfter: string,
-    condition: { field: string; operator: string; value?: unknown }
-  ) => {
-    return products().list<ProductRecord>({
-      filters: {
-        conditionTree: {
-          aggregator: "And",
-          conditions: [
-            {
-              field: "name",
-              operator: "Contains",
-              value: base,
-            },
-            {
-              field: "created_at",
-              operator: "After",
-              value: createdAfter,
-            },
-            condition as any,
-          ],
-        },
-      },
-    });
-  };
+    const allBankAccounts = await bankAccounts().list();
+    if (allBankAccounts.length > 0) {
+      await bankAccounts().delete(
+        allBankAccounts.map((bank) => String(bank.id))
+      );
+    }
+    const allOrganizations = await organizations().list();
+    if (allOrganizations.length > 0) {
+      await organizations().delete(
+        allOrganizations.map((org) => String(org.id))
+      );
+    }
+  });
 
   describe("type number", () => {
     it("equal", async () => {
-      const base = `number-equal-${uniqueSeed()}`;
-      const createdAfter = new Date().toISOString();
+      const orga = await organizations().create({
+        name: "Test Organization",
+      });
+      const bank = await bankAccounts().create({
+        iban: "DE89370400440532013000",
+        organization_id: orga.id,
+      });
 
-      const [target, other] = await Promise.all([
-        products().create<ProductRecord>({ name: `${base}-target` }),
-        products().create<ProductRecord>({ name: `${base}-other` }),
-      ]);
+      await incomes().create<IncomeRecord>({
+        amount: 1500,
+        bank_account_id: bank.id,
+      });
+      const target = await incomes().create<IncomeRecord>({
+        amount: 2750,
+        bank_account_id: bank.id,
+      });
 
-      const productsResult = await listWithBase(base, createdAfter, {
-        field: "id",
-        operator: "Equal",
-        value: toNumericId(target),
+      const productsResult = await incomes().list<IncomeRecord>({
+        filters: {
+          conditionTree: {
+            field: "amount",
+            operator: "Equal",
+            value: target.amount,
+          },
+        },
       });
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
-        expect.arrayContaining([expect.objectContaining({ id: target.id })])
+        expect.arrayContaining([expect.objectContaining({ amount: 2750 })])
       );
     });
 
     it("not equal", async () => {
-      const base = `number-notequal-${uniqueSeed()}`;
-      const createdAfter = new Date().toISOString();
-
       const [first, second] = await Promise.all([
-        products().create<ProductRecord>({ name: `${base}-first` }),
-        products().create<ProductRecord>({ name: `${base}-second` }),
+        incomes().create<IncomeRecord>({ amount: 500 }),
+        incomes().create<IncomeRecord>({ amount: 800 }),
       ]);
 
-      const productsResult = await listWithBase(base, createdAfter, {
-        field: "id",
-        operator: "NotEqual",
-        value: toNumericId(first),
+      const productsResult = await incomes().list<IncomeRecord>({
+        filters: {
+          conditionTree: {
+            field: "amount",
+            operator: "NotEqual",
+            value: first.amount,
+          },
+        },
       });
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
-        expect.arrayContaining([expect.objectContaining({ id: second.id })])
+        expect.arrayContaining([expect.objectContaining({ amount: 800 })])
       );
     });
 
     it("less than", async () => {
-      const base = `number-lessthan-${uniqueSeed()}`;
-      const createdAfter = new Date().toISOString();
-
       const records = await Promise.all([
-        products().create<ProductRecord>({ name: `${base}-a` }),
-        products().create<ProductRecord>({ name: `${base}-b` }),
-        products().create<ProductRecord>({ name: `${base}-c` }),
+        incomes().create<IncomeRecord>({ amount: 120 }),
+        incomes().create<IncomeRecord>({ amount: 240 }),
+        incomes().create<IncomeRecord>({ amount: 360 }),
       ]);
 
       const sorted = [...records].sort(
-        (a, b) => toNumericId(a) - toNumericId(b)
+        (a, b) => (a.amount ?? 0) - (b.amount ?? 0)
       );
-      const threshold = toNumericId(sorted[1]);
+      const threshold = sorted[1].amount!;
 
-      const productsResult = await listWithBase(base, createdAfter, {
-        field: "id",
-        operator: "LessThan",
-        value: threshold,
+      const productsResult = await incomes().list<IncomeRecord>({
+        filters: {
+          conditionTree: {
+            field: "amount",
+            operator: "LessThan",
+            value: threshold,
+          },
+        },
       });
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
-        expect.arrayContaining([expect.objectContaining({ id: sorted[0].id })])
+        expect.arrayContaining([expect.objectContaining({ amount: 120 })])
       );
     });
 
     it("less than or equal", async () => {
-      const base = `number-lessthaneq-${uniqueSeed()}`;
-      const createdAfter = new Date().toISOString();
-
       const records = await Promise.all([
-        products().create<ProductRecord>({ name: `${base}-a` }),
-        products().create<ProductRecord>({ name: `${base}-b` }),
-        products().create<ProductRecord>({ name: `${base}-c` }),
+        incomes().create<IncomeRecord>({ amount: 90 }),
+        incomes().create<IncomeRecord>({ amount: 180 }),
+        incomes().create<IncomeRecord>({ amount: 270 }),
       ]);
 
       const sorted = [...records].sort(
-        (a, b) => toNumericId(a) - toNumericId(b)
+        (a, b) => (a.amount ?? 0) - (b.amount ?? 0)
       );
-      const threshold = toNumericId(sorted[1]);
+      const threshold = sorted[1].amount!;
 
-      const productsResult = await listWithBase(base, createdAfter, {
-        field: "id",
-        operator: "LessThanOrEqual",
-        value: threshold,
+      const productsResult = await incomes().list<IncomeRecord>({
+        filters: {
+          conditionTree: {
+            field: "amount",
+            operator: "LessThanOrEqual",
+            value: threshold,
+          },
+        },
       });
 
-      const expectedIds = new Set([sorted[0].id, sorted[1].id]);
-      expect(productsResult).toHaveLength(expectedIds.size);
-      expectedIds.forEach((id) =>
-        expect(productsResult).toEqual(
-          expect.arrayContaining([expect.objectContaining({ id })])
-        )
+      expect(productsResult).toHaveLength(2);
+      expect(productsResult).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ amount: 90 }),
+          expect.objectContaining({ amount: 180 }),
+        ])
       );
     });
 
     it("greater than", async () => {
-      const base = `number-greaterthan-${uniqueSeed()}`;
-      const createdAfter = new Date().toISOString();
-
       const records = await Promise.all([
-        products().create<ProductRecord>({ name: `${base}-a` }),
-        products().create<ProductRecord>({ name: `${base}-b` }),
-        products().create<ProductRecord>({ name: `${base}-c` }),
+        incomes().create<IncomeRecord>({ amount: 400 }),
+        incomes().create<IncomeRecord>({ amount: 500 }),
+        incomes().create<IncomeRecord>({ amount: 600 }),
       ]);
 
       const sorted = [...records].sort(
-        (a, b) => toNumericId(a) - toNumericId(b)
+        (a, b) => (a.amount ?? 0) - (b.amount ?? 0)
       );
-      const threshold = toNumericId(sorted[1]);
+      const threshold = sorted[1].amount!;
 
-      const productsResult = await listWithBase(base, createdAfter, {
-        field: "id",
-        operator: "GreaterThan",
-        value: threshold,
+      const productsResult = await incomes().list<IncomeRecord>({
+        filters: {
+          conditionTree: {
+            field: "amount",
+            operator: "GreaterThan",
+            value: threshold,
+          },
+        },
       });
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
-        expect.arrayContaining([expect.objectContaining({ id: sorted[2].id })])
+        expect.arrayContaining([expect.objectContaining({ amount: 600 })])
       );
     });
 
     it("greater than or equal", async () => {
-      const base = `number-greaterthaneq-${uniqueSeed()}`;
-      const createdAfter = new Date().toISOString();
-
       const records = await Promise.all([
-        products().create<ProductRecord>({ name: `${base}-a` }),
-        products().create<ProductRecord>({ name: `${base}-b` }),
-        products().create<ProductRecord>({ name: `${base}-c` }),
+        incomes().create<IncomeRecord>({ amount: 700 }),
+        incomes().create<IncomeRecord>({ amount: 800 }),
+        incomes().create<IncomeRecord>({ amount: 900 }),
       ]);
 
       const sorted = [...records].sort(
-        (a, b) => toNumericId(a) - toNumericId(b)
+        (a, b) => (a.amount ?? 0) - (b.amount ?? 0)
       );
-      const threshold = toNumericId(sorted[1]);
+      const threshold = sorted[1].amount!;
 
-      const productsResult = await listWithBase(base, createdAfter, {
-        field: "id",
-        operator: "GreaterThanOrEqual",
-        value: threshold,
+      const productsResult = await incomes().list<IncomeRecord>({
+        filters: {
+          conditionTree: {
+            field: "amount",
+            operator: "GreaterThanOrEqual",
+            value: threshold,
+          },
+        },
       });
 
-      const expectedIds = new Set([sorted[1].id, sorted[2].id]);
-      expect(productsResult).toHaveLength(expectedIds.size);
-      expectedIds.forEach((id) =>
-        expect(productsResult).toEqual(
-          expect.arrayContaining([expect.objectContaining({ id })])
-        )
+      expect(productsResult).toHaveLength(2);
+      expect(productsResult).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ amount: 800 }),
+          expect.objectContaining({ amount: 900 }),
+        ])
       );
     });
 
     it("in", async () => {
-      const base = `number-in-${uniqueSeed()}`;
-      const createdAfter = new Date().toISOString();
-
       const records = await Promise.all([
-        products().create<ProductRecord>({ name: `${base}-a` }),
-        products().create<ProductRecord>({ name: `${base}-b` }),
-        products().create<ProductRecord>({ name: `${base}-c` }),
+        incomes().create<IncomeRecord>({ amount: 15 }),
+        incomes().create<IncomeRecord>({ amount: 30 }),
+        incomes().create<IncomeRecord>({ amount: 45 }),
       ]);
 
       const keep = [records[0], records[2]];
 
-      const productsResult = await listWithBase(base, createdAfter, {
-        field: "id",
-        operator: "In",
-        value: keep.map(toNumericId),
+      const productsResult = await incomes().list<IncomeRecord>({
+        filters: {
+          conditionTree: {
+            field: "amount",
+            operator: "In",
+            value: keep.map((record) => record.amount),
+          },
+        },
       });
 
       expect(productsResult).toHaveLength(keep.length);
       keep.forEach((record) =>
         expect(productsResult).toEqual(
-          expect.arrayContaining([expect.objectContaining({ id: record.id })])
+          expect.arrayContaining([
+            expect.objectContaining({ amount: record.amount }),
+          ])
         )
       );
     });
 
     it("not in", async () => {
-      const base = `number-notin-${uniqueSeed()}`;
-      const createdAfter = new Date().toISOString();
-
       const records = await Promise.all([
-        products().create<ProductRecord>({ name: `${base}-a` }),
-        products().create<ProductRecord>({ name: `${base}-b` }),
-        products().create<ProductRecord>({ name: `${base}-c` }),
+        incomes().create<IncomeRecord>({ amount: 55 }),
+        incomes().create<IncomeRecord>({ amount: 65 }),
+        incomes().create<IncomeRecord>({ amount: 75 }),
       ]);
 
       const excluded = [records[0], records[1]];
 
-      const productsResult = await listWithBase(base, createdAfter, {
-        field: "id",
-        operator: "NotIn",
-        value: excluded.map(toNumericId),
+      const productsResult = await incomes().list<IncomeRecord>({
+        filters: {
+          conditionTree: {
+            field: "amount",
+            operator: "NotIn",
+            value: excluded.map((record) => record.amount),
+          },
+        },
       });
 
       const expected = records.find(
@@ -264,64 +272,71 @@ describe("filters", () => {
       }
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
-        expect.arrayContaining([expect.objectContaining({ id: expected.id })])
+        expect.arrayContaining([
+          expect.objectContaining({ amount: expected.amount }),
+        ])
       );
     });
 
     it("present", async () => {
-      const base = `number-present-${uniqueSeed()}`;
-      const createdAfter = new Date().toISOString();
+      await incomes().create<IncomeRecord>({ amount: 10 });
+      await incomes().create<IncomeRecord>({ amount: null });
 
-      const records = await Promise.all([
-        products().create<ProductRecord>({ name: `${base}-a` }),
-        products().create<ProductRecord>({ name: `${base}-b` }),
-      ]);
-
-      const productsResult = await listWithBase(base, createdAfter, {
-        field: "id",
-        operator: "Present",
+      const productsResult = await incomes().list<IncomeRecord>({
+        filters: {
+          conditionTree: {
+            field: "amount",
+            operator: "Present",
+          },
+        },
       });
 
-      expect(productsResult).toHaveLength(records.length);
-      records.forEach((record) =>
-        expect(productsResult).toEqual(
-          expect.arrayContaining([expect.objectContaining({ id: record.id })])
-        )
+      expect(productsResult).toHaveLength(1);
+      expect(productsResult).toEqual(
+        expect.arrayContaining([expect.objectContaining({ amount: 10 })])
       );
     });
 
     it("missing", async () => {
-      const base = `number-missing-${uniqueSeed()}`;
-      const createdAfter = new Date().toISOString();
-
       await Promise.all([
-        products().create<ProductRecord>({ name: `${base}-a` }),
-        products().create<ProductRecord>({ name: `${base}-b` }),
+        incomes().create<IncomeRecord>({ amount: null }),
+        incomes().create<IncomeRecord>({ amount: 300 }),
       ]);
 
-      const productsResult = await listWithBase(base, createdAfter, {
-        field: "id",
-        operator: "Missing",
+      const productsResult = await incomes().list<IncomeRecord>({
+        filters: {
+          conditionTree: {
+            field: "amount",
+            operator: "Missing",
+          },
+        },
       });
 
-      expect(productsResult).toHaveLength(0);
+      expect(productsResult).toHaveLength(1);
+      expect(productsResult).toEqual(
+        expect.arrayContaining([expect.objectContaining({ amount: null })])
+      );
     });
 
     it("blank", async () => {
-      const base = `number-blank-${uniqueSeed()}`;
-      const createdAfter = new Date().toISOString();
-
       await Promise.all([
-        products().create<ProductRecord>({ name: `${base}-a` }),
-        products().create<ProductRecord>({ name: `${base}-b` }),
+        incomes().create<IncomeRecord>({ amount: null }),
+        incomes().create<IncomeRecord>({ amount: 25 }),
       ]);
 
-      const productsResult = await listWithBase(base, createdAfter, {
-        field: "id",
-        operator: "Blank",
+      const productsResult = await incomes().list<IncomeRecord>({
+        filters: {
+          conditionTree: {
+            field: "amount",
+            operator: "Blank",
+          },
+        },
       });
 
-      expect(productsResult).toHaveLength(0);
+      expect(productsResult).toHaveLength(1);
+      expect(productsResult).toEqual(
+        expect.arrayContaining([expect.objectContaining({ amount: null })])
+      );
     });
   });
 });
