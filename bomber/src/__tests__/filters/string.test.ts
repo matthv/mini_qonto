@@ -1,4 +1,5 @@
 import { mountAgentClient } from "../../agent-setup";
+import { clearCollections, PRODUCT_COLLECTION } from "../helpers";
 
 type AgentClient = Awaited<ReturnType<typeof mountAgentClient>>;
 type ProductRecord = {
@@ -8,8 +9,6 @@ type ProductRecord = {
   updated_at?: string | null;
 };
 
-const PRODUCTS_COLLECTION = "Biller__Product";
-
 describe("filters", () => {
   let clientAgent: AgentClient;
 
@@ -17,14 +16,10 @@ describe("filters", () => {
     clientAgent = await mountAgentClient();
   });
 
-  const products = () => clientAgent.collection(PRODUCTS_COLLECTION);
+  const products = () => clientAgent.collection(PRODUCT_COLLECTION);
+
   beforeEach(async () => {
-    const allProducts = await products().list<ProductRecord>();
-    if (allProducts.length > 0) {
-      await products().delete(
-        allProducts.map((product) => String(product.id))
-      );
-    }
+    await clearCollections(clientAgent);
   });
 
   describe("type string", () => {
@@ -371,7 +366,9 @@ describe("filters", () => {
         products().create<ProductRecord>({
           name: "STRING-ISTARTS-MATCH-b",
         }),
-        products().create<ProductRecord>({ name: "prefix-string-istarts-miss" }),
+        products().create<ProductRecord>({
+          name: "prefix-string-istarts-miss",
+        }),
       ]);
 
       const productsResult = await products().list<ProductRecord>({
@@ -404,7 +401,9 @@ describe("filters", () => {
         products().create<ProductRecord>({
           name: "PREFIX-B-STRING-IENDS",
         }),
-        products().create<ProductRecord>({ name: "string-iends-trailing-miss" }),
+        products().create<ProductRecord>({
+          name: "string-iends-trailing-miss",
+        }),
       ]);
 
       const productsResult = await products().list<ProductRecord>({
@@ -569,9 +568,7 @@ describe("filters", () => {
 
       expect(productsResult).toHaveLength(1);
       expect(productsResult).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ name: shortName }),
-        ])
+        expect.arrayContaining([expect.objectContaining({ name: shortName })])
       );
     });
 
@@ -631,7 +628,9 @@ describe("filters", () => {
 
     it("not i contains", async () => {
       await Promise.all([
-        products().create<ProductRecord>({ name: "string-noticontains-allowed" }),
+        products().create<ProductRecord>({
+          name: "string-noticontains-allowed",
+        }),
         products().create<ProductRecord>({
           name: "string-noticontains-Excluded",
         }),
