@@ -48,3 +48,4 @@ bomber/.pnp.loader.mjs
 bomber/.yarn/unplugged
 bomber/.yarn/install-state.gz
 bomber/.yarn/sdks
+bomber/node_modules

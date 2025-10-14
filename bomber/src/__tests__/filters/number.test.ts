@@ -1,4 +1,5 @@
 import { mountAgentClient } from "../../agent-setup";
+import { clearCollections } from "../helpers";
 
 type AgentClient = Awaited<ReturnType<typeof mountAgentClient>>;
 type IncomeRecord = {
@@ -22,22 +23,7 @@ describe("filters", () => {
   const organizations = () => clientAgent.collection(ORGANIZATION_COLLECTION);
 
   beforeEach(async () => {
-    const allIncomes = await incomes().list<IncomeRecord>();
-    if (allIncomes.length > 0) {
-      await incomes().delete(allIncomes.map((income) => String(income.id)));
-    }
-    const allBankAccounts = await bankAccounts().list();
-    if (allBankAccounts.length > 0) {
-      await bankAccounts().delete(
-        allBankAccounts.map((bank) => String(bank.id))
-      );
-    }
-    const allOrganizations = await organizations().list();
-    if (allOrganizations.length > 0) {
-      await organizations().delete(
-        allOrganizations.map((org) => String(org.id))
-      );
-    }
+    await clearCollections(clientAgent);
   });
 
   describe("type number", () => {
