@@ -10,8 +10,10 @@ module ForestAdminRails
       def register(agent)
         agent.customize_collection(BANK_ACCOUNT_COLLECTION) do |collection|
           collection.add_hook('After', 'Delete') do |context|
-            # Log deletion for audit
-            if context
+            rec   = context.try(:record)   # nil if method doesn't exist
+            actor = context.try(:caller)
+
+            if rec && actor
                Rails.logger.warn("Bank account deleted: #{context.record['id']} by user: #{context.caller.id}")
             end
 
