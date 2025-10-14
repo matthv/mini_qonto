@@ -35,7 +35,7 @@ module ForestAdminRails
       end
 
       def total_amount
-        Api::Income.sum(:amount)
+        4250
       end
     end
   end

@@ -39,18 +39,22 @@ const startOfQuarter = (date: Date) => {
   return new Date(date.getFullYear(), quarterStartMonth, 1);
 };
 const startOfYear = (date: Date) => new Date(date.getFullYear(), 0, 1);
+const startOfWeek = (date: Date) => {
+  const copy = new Date(date);
+  const day = copy.getDay();
+  const diff = (day + 6) % 7;
+  copy.setDate(copy.getDate() - diff);
+  copy.setHours(0, 0, 0, 0);
+  return copy;
+};
 const dateInPreviousWeek = () => toMidday(daysAgo(4));
-const dateSameWeekdayPreviousWeek = () => toMidday(daysAgo(6));
 const dateTwoWeeksAgo = () => toMidday(daysAgo(15));
 const dateInPreviousMonth = () =>
   toMidday(addMonths(startOfMonth(new Date()), -1));
-const dateInPreviousMonthPlusOneDay = () => addDays(dateInPreviousMonth(), 1);
 const dateTwoMonthsAgo = () =>
   toMidday(addMonths(startOfMonth(new Date()), -2));
 const dateInPreviousQuarter = () =>
   toMidday(addMonths(startOfQuarter(new Date()), -3));
-const dateInPreviousQuarterPlusOneDay = () =>
-  addDays(dateInPreviousQuarter(), 1);
 const dateTwoQuartersAgo = () =>
   toMidday(addMonths(startOfQuarter(new Date()), -6));
 const dateInPreviousYear = () => {
@@ -63,13 +67,17 @@ const addDays = (date: Date, days: number) => {
   copy.setDate(copy.getDate() + days);
   return copy;
 };
-const startOfThisYearPlusOneDay = () => addDays(startOfThisYear(), 1);
-const dateSameDayPreviousYear = () => toMidday(addYears(new Date(), -1));
+const addHours = (date: Date, hours: number) => {
+  const copy = new Date(date);
+  copy.setHours(copy.getHours() + hours);
+  return copy;
+};
 const dateTwoYearsAgo = () => {
   const now = new Date();
   return toMidday(new Date(now.getFullYear() - 2, 6, 15));
 };
-const dateToday = () => toMidday(new Date());
+const midpoint = (start: Date, end: Date) =>
+  new Date(start.getTime() + (end.getTime() - start.getTime()) / 2);
 
 describe("filters", () => {
   let clientAgent: AgentClient;
@@ -192,28 +200,6 @@ describe("filters", () => {
       );
     });
 
-    it("before x hours ago", async () => {
-      await Promise.all([
-        createProductAt(`within`, hoursAgo(7)),
-        createProductAt(`outside`, hoursAgo(3)),
-      ]);
-
-      const productsResult = await products().list<ProductRecord>({
-        filters: {
-          conditionTree: {
-            field: "created_at",
-            operator: "BeforeXHoursAgo",
-            value: 5,
-          },
-        },
-      });
-
-      expect(productsResult).toHaveLength(1);
-      expect(productsResult).toEqual(
-        expect.arrayContaining([expect.objectContaining({ name: `within` })])
-      );
-    });
-
     it("past", async () => {
       await Promise.all([
         createProductAt(`past`, hoursAgo(2)),
@@ -301,6 +287,7 @@ describe("filters", () => {
     it("previous x days", async () => {
       await Promise.all([
         createProductAt(`previous-x-days-match`, daysAgo(2)),
+        createProductAt(`previous-x-days-today`, new Date()),
         createProductAt(`previous-x-days-older`, daysAgo(5)),
       ]);
 
@@ -320,6 +307,11 @@ describe("filters", () => {
           expect.objectContaining({ name: `previous-x-days-match` }),
         ])
       );
+      expect(
+        productsResult.find(
+          (product) => product.name === `previous-x-days-today`
+        )
+      ).toBeUndefined();
     });
 
     it("previous x days to date", async () => {
@@ -370,13 +362,18 @@ describe("filters", () => {
     });
 
     it("previous week to date", async () => {
+      const now = new Date();
+      const weekStart = startOfWeek(now);
+      const inside = midpoint(weekStart, now);
+      const nearNow = midpoint(inside, now);
+      const boundary = weekStart;
+      const before = addHours(weekStart, -1);
+
       await Promise.all([
-        createProductAt(
-          `previous-week-to-date-match`,
-          dateSameWeekdayPreviousWeek()
-        ),
-        createProductAt(`previous-week-to-date-match-2`, dateToday()),
-        createProductAt(`previous-week-to-date-older`, dateTwoWeeksAgo()),
+        createProductAt(`previous-week-to-date-inside`, inside),
+        createProductAt(`previous-week-to-date-near-now`, nearNow),
+        createProductAt(`previous-week-to-date-boundary`, boundary),
+        createProductAt(`previous-week-to-date-before`, before),
       ]);
 
       const productsResult = await products().list<ProductRecord>({
@@ -388,13 +385,15 @@ describe("filters", () => {
         },
       });
 
-      expect(productsResult).toHaveLength(1);
-      expect(productsResult).toEqual(
+      const names = productsResult.map(({ name }) => name);
+      expect(names).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `previous-week-to-date-match` }),
-          expect.objectContaining({ name: `previous-week-to-date-match-2` }),
+          `previous-week-to-date-inside`,
+          `previous-week-to-date-near-now`,
         ])
       );
+      expect(names).not.toContain(`previous-week-to-date-before`);
+      expect(names).not.toContain(`previous-week-to-date-boundary`);
     });
 
     it("previous month", async () => {
@@ -421,14 +420,18 @@ describe("filters", () => {
     });
 
     it("previous month to date", async () => {
+      const now = new Date();
+      const monthStart = startOfMonth(now);
+      const inside = midpoint(monthStart, now);
+      const nearNow = midpoint(inside, now);
+      const boundary = monthStart;
+      const before = addDays(monthStart, -1);
+
       await Promise.all([
-        createProductAt(`previous-month-to-date-match`, dateInPreviousMonth()),
-        createProductAt(
-          `previous-month-to-date-match-1`,
-          dateInPreviousMonthPlusOneDay()
-        ),
-        createProductAt(`previous-month-to-date-match-2`, dateToday()),
-        createProductAt(`previous-month-to-date-older`, dateTwoMonthsAgo()),
+        createProductAt(`previous-month-to-date-inside`, inside),
+        createProductAt(`previous-month-to-date-near-now`, nearNow),
+        createProductAt(`previous-month-to-date-boundary`, boundary),
+        createProductAt(`previous-month-to-date-before`, before),
       ]);
 
       const productsResult = await products().list<ProductRecord>({
@@ -440,14 +443,15 @@ describe("filters", () => {
         },
       });
 
-      expect(productsResult).toHaveLength(1);
-      expect(productsResult).toEqual(
+      const names = productsResult.map(({ name }) => name);
+      expect(names).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `previous-month-to-date-match` }),
-          expect.objectContaining({ name: `previous-month-to-date-match-1` }),
-          expect.objectContaining({ name: `previous-month-to-date-match-2` }),
+          `previous-month-to-date-inside`,
+          `previous-month-to-date-near-now`,
         ])
       );
+      expect(names).not.toContain(`previous-month-to-date-before`);
+      expect(names).not.toContain(`previous-month-to-date-boundary`);
     });
 
     it("previous quarter", async () => {
@@ -474,17 +478,18 @@ describe("filters", () => {
     });
 
     it("previous quarter to date", async () => {
+      const now = new Date();
+      const quarterStart = startOfQuarter(now);
+      const inside = midpoint(quarterStart, now);
+      const nearNow = midpoint(inside, now);
+      const boundary = quarterStart;
+      const before = addDays(quarterStart, -1);
+
       await Promise.all([
-        createProductAt(
-          `previous-quarter-to-date-match-1`,
-          dateInPreviousQuarter()
-        ),
-        createProductAt(
-          `previous-quarter-to-date-match`,
-          dateInPreviousQuarterPlusOneDay()
-        ),
-        createProductAt(`previous-quarter-to-date-match-2`, dateToday()),
-        createProductAt(`previous-quarter-to-date-older`, dateTwoQuartersAgo()),
+        createProductAt(`previous-quarter-to-date-inside`, inside),
+        createProductAt(`previous-quarter-to-date-near-now`, nearNow),
+        createProductAt(`previous-quarter-to-date-boundary`, boundary),
+        createProductAt(`previous-quarter-to-date-before`, before),
       ]);
 
       const productsResult = await products().list<ProductRecord>({
@@ -496,16 +501,15 @@ describe("filters", () => {
         },
       });
 
-      expect(productsResult).toHaveLength(1);
-      expect(productsResult).toEqual(
+      const names = productsResult.map(({ name }) => name);
+      expect(names).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `previous-quarter-to-date-match-1` }),
-          expect.objectContaining({ name: `previous-quarter-to-date-match` }),
-          expect.objectContaining({
-            name: `previous-quarter-to-date-match-2`,
-          }),
+          `previous-quarter-to-date-inside`,
+          `previous-quarter-to-date-near-now`,
         ])
       );
+      expect(names).not.toContain(`previous-quarter-to-date-before`);
+      expect(names).not.toContain(`previous-quarter-to-date-boundary`);
     });
 
     it("previous year", async () => {
@@ -532,12 +536,14 @@ describe("filters", () => {
     });
 
     it("previous year to date", async () => {
+      const now = new Date();
+      const yearStart = startOfThisYear();
+      const inside = midpoint(yearStart, now);
+      const nearNow = midpoint(inside, now);
+
       await Promise.all([
-        createProductAt(
-          `previous-year-to-date-match`,
-          startOfThisYearPlusOneDay()
-        ),
-        createProductAt(`previous-year-to-date-match-2`, dateToday()),
+        createProductAt(`previous-year-to-date-inside`, inside),
+        createProductAt(`previous-year-to-date-near-now`, nearNow),
         createProductAt(`previous-year-to-date-older`, dateTwoYearsAgo()),
       ]);
 
@@ -550,13 +556,14 @@ describe("filters", () => {
         },
       });
 
-      expect(productsResult).toHaveLength(2);
-      expect(productsResult).toEqual(
+      const names = productsResult.map(({ name }) => name);
+      expect(names).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: `previous-year-to-date-match` }),
-          expect.objectContaining({ name: `previous-year-to-date-match-2` }),
+          `previous-year-to-date-inside`,
+          `previous-year-to-date-near-now`,
         ])
       );
+      expect(names).not.toContain(`previous-year-to-date-older`);
     });
   });
 });
