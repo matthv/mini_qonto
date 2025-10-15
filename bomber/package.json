@@ -11,7 +11,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@forestadmin-experimental/agent-nodejs-testing": "^0.32.3"
+    "@forestadmin-experimental/agent-nodejs-testing": "^0.32.4"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

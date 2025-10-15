@@ -39,6 +39,14 @@ module ForestAdminRails
 
             format_iban(context.get_form_value(IBAN_FORM_FIELD_ID))
           end
+        },
+        {
+          type: 'Layout',
+          component: 'HtmlBlock',
+          content: 'IBAN must start with FR76',
+          if_condition: lambda do |context|
+            !iban_starts_with_fr76?(context.get_form_value(IBAN_FORM_FIELD_ID))
+          end,
         }
       ].freeze
 
