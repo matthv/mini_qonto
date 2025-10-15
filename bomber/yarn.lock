@@ -433,9 +433,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@forestadmin-experimental/agent-nodejs-testing@npm:^0.32.3":
-  version: 0.32.3
-  resolution: "@forestadmin-experimental/agent-nodejs-testing@npm:0.32.3"
+"@forestadmin-experimental/agent-nodejs-testing@npm:^0.32.4":
+  version: 0.32.4
+  resolution: "@forestadmin-experimental/agent-nodejs-testing@npm:0.32.4"
   dependencies:
     "@forestadmin/agent": "npm:1.52.0"
     "@forestadmin/datasource-customizer": "npm:1.55.2"
@@ -449,7 +449,7 @@ __metadata:
     "@forestadmin/datasource-customizer": ">=1.55.2"
     "@forestadmin/datasource-toolkit": ">=1.43.0"
     "@forestadmin/forestadmin-client": ">=1.34.2"
-  checksum: 10c0/7206a07bdf7ccd9fbe2ec83e396875ca979a4283bc58c69cfdd0e527424162e88806843e153281ce296b64cb5eabde7e690bfa4c3b96e740564c54c2d2b23f2f
+  checksum: 10c0/f318b28c6eb9f9aa7da2bed5afa504d63753075cfa755890b625733c85c94b696f2ff5321116896e4aa2f6036fb1b55e77df87aa6890d3c8f43351cf4671d75e
   languageName: node
   linkType: hard
 
@@ -1741,7 +1741,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "bomber@workspace:."
   dependencies:
-    "@forestadmin-experimental/agent-nodejs-testing": "npm:^0.32.3"
+    "@forestadmin-experimental/agent-nodejs-testing": "npm:^0.32.4"
     "@types/jest": "npm:^30.0.0"
     "@types/node": "npm:^24.7.0"
     dotenv: "npm:^17.2.3"
