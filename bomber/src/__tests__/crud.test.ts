@@ -1,11 +1,9 @@
 import { SelectOptions } from "@forestadmin-experimental/agent-nodejs-testing/dist/remote-agent-client/types";
 import { mountAgentClient } from "../agent-setup";
-import { clearCollections } from "./helpers";
+import { clearCollections, ORGANIZATION_COLLECTION } from "./helpers";
 
 type AgentClient = Awaited<ReturnType<typeof mountAgentClient>>;
 type OrganizationRecord = { id: string; name: string };
-
-const ORGANIZATION_COLLECTION = "Api__OrganizationsView";
 
 describe("crud", () => {
   let clientAgent: AgentClient;

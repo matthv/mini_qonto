@@ -1,11 +1,12 @@
 import { mountAgentClient } from "../agent-setup";
-import { clearCollections } from "./helpers";
+import {
+  clearCollections,
+  ORGANIZATION_COLLECTION_VIEW,
+  SEGMENT_NAME_ON_ORGANIZATION_VIEW,
+} from "./helpers";
 
 type AgentClient = Awaited<ReturnType<typeof mountAgentClient>>;
 type OrganizationRecord = { id: number | string; name: string | null };
-
-const ORGANIZATION_COLLECTION = "Api__OrganizationsView";
-const SEGMENT_NAME = "Segment | With Name";
 
 describe("collection segments", () => {
   let clientAgent: AgentClient;
@@ -18,7 +19,8 @@ describe("collection segments", () => {
     await clearCollections(clientAgent);
   });
 
-  const organizations = () => clientAgent.collection(ORGANIZATION_COLLECTION);
+  const organizations = () =>
+    clientAgent.collection(ORGANIZATION_COLLECTION_VIEW);
 
   it("filters organizations using custom segment", async () => {
     const [noNameOrg] = await organizations().list<OrganizationRecord>({
@@ -32,7 +34,7 @@ describe("collection segments", () => {
     expect(noNameOrg).not.toBeDefined();
 
     const initialSegmentRecords = await organizations()
-      .segment(SEGMENT_NAME)
+      .segment(SEGMENT_NAME_ON_ORGANIZATION_VIEW)
       .list<OrganizationRecord>();
 
     const namedOrganizationName = `Named organization ${Date.now()}`;
@@ -45,7 +47,7 @@ describe("collection segments", () => {
       await organizations().create<OrganizationRecord>({ name: null });
 
     const segmentRecords = await organizations()
-      .segment(SEGMENT_NAME)
+      .segment(SEGMENT_NAME_ON_ORGANIZATION_VIEW)
       .list<OrganizationRecord>();
 
     expect(segmentRecords.length).toBeGreaterThan(initialSegmentRecords.length);
@@ -73,5 +75,19 @@ describe("collection segments", () => {
         },
       });
     expect(organizationWithoutName).toBeDefined();
+  });
+
+  it("filters organizations using live query segment", async () => {
+    await organizations().create<OrganizationRecord>({ name: null });
+    await organizations().create<OrganizationRecord>({ name: "not expected" });
+
+    const initialSegmentRecords = await organizations()
+      .liveQuerySegment({
+        connectionName: "api",
+        query: "SELECT * FROM organizations WHERE name IS NOT NULL",
+      })
+      .list<OrganizationRecord>();
+
+    expect(initialSegmentRecords.length).toBe(1);
   });
 });

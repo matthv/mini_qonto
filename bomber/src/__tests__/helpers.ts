@@ -3,6 +3,8 @@ import { mountAgentClient } from "../agent-setup";
 export const INCOME_COLLECTION = "Api__Income";
 export const BANK_ACCOUNT_COLLECTION = "Api__BankAccount";
 export const ORGANIZATION_COLLECTION = "Api__Organization";
+export const ORGANIZATION_COLLECTION_VIEW = "Api__OrganizationsView";
+export const SEGMENT_NAME_ON_ORGANIZATION_VIEW = "Segment | With Name";
 export const PRODUCT_COLLECTION = "Biller__Product";
 
 export type AgentClient = Awaited<ReturnType<typeof mountAgentClient>>;
