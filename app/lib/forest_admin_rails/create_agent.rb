@@ -4,6 +4,7 @@ require_relative 'hooks/hooks'
 require_relative 'segments/segments'
 require_relative 'fields/fields'
 require_relative 'validations/validations'
+require_relative 'relationships'
 
 module ForestAdminRails
   class CreateAgent
@@ -30,6 +31,7 @@ module ForestAdminRails
       ForestAdminRails::Charts.register(@create_agent)
       ForestAdminRails::Segments.register(@create_agent)
       ForestAdminRails::Validations.register(@create_agent)
+      ForestAdminRails::Relationships.register(@create_agent)
     end
   end
 end

@@ -6,6 +6,7 @@ export const ORGANIZATION_COLLECTION = "Api__Organization";
 export const ORGANIZATION_COLLECTION_VIEW = "Api__OrganizationsView";
 export const SEGMENT_NAME_ON_ORGANIZATION_VIEW = "Segment | With Name";
 export const PRODUCT_COLLECTION = "Biller__Product";
+export const TRANSACTION_COLLECTION = "Api__Transaction";
 
 export type AgentClient = Awaited<ReturnType<typeof mountAgentClient>>;
 
@@ -14,7 +15,12 @@ export const clearCollections = async (clientAgent: AgentClient) => {
   const bankAccounts = clientAgent.collection(BANK_ACCOUNT_COLLECTION);
   const organizations = clientAgent.collection(ORGANIZATION_COLLECTION);
   const products = clientAgent.collection(PRODUCT_COLLECTION);
+  const transactions = clientAgent.collection(TRANSACTION_COLLECTION);
 
+  const allTransactions = await transactions.list();
+  if (allTransactions.length > 0) {
+    await transactions.delete(allTransactions.map((transaction) => String(transaction.id)));
+  }
   const allIncomes = await incomes.list();
   if (allIncomes.length > 0) {
     await incomes.delete(allIncomes.map((income) => String(income.id)));
