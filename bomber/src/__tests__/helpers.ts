@@ -29,9 +29,10 @@ export const clearCollections = async (clientAgent: AgentClient) => {
   if (allBankAccounts.length > 0) {
     await bankAccounts.delete(allBankAccounts.map((bank) => String(bank.id)));
   }
-  const allOrganizations = await organizations.list();
-  if (allOrganizations.length > 0) {
+  let allOrganizations = await organizations.list();
+  while (allOrganizations.length > 0) {
     await organizations.delete(allOrganizations.map((org) => String(org.id)));
+    allOrganizations = await organizations.list();
   }
 
   const allProducts = await products.list();
