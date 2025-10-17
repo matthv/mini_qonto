@@ -1,4 +1,5 @@
 # TODO 001: Update Field Endpoint - Implementation Guide
+
 ## High Priority (P1) - Forest Admin Agent Ruby
 
 **Project:** mini_qonto
@@ -13,12 +14,14 @@
 Implement missing endpoint for updating individual elements within array-type fields, enabling granular modifications without replacing entire arrays.
 
 **Current Gap:**
+
 - Cannot update single element in array field via REST API
 - Must fetch entire record, modify array locally, send full update
 - Inefficient for large arrays
 - No support for nested object updates within arrays
 
 **Target Solution:**
+
 - New endpoint: `PUT /forest/:collection_name/:id/relationships/:field_name/:index`
 - Updates single array element at specific index
 - Supports nested object field updates within array elements
@@ -26,6 +29,7 @@ Implement missing endpoint for updating individual elements within array-type fi
 - Atomic operation with proper permission checks
 
 **Use Cases:**
+
 - Update one tag in a tags array without fetching all tags
 - Modify specific item in order line items array
 - Update status of one task in tasks array
@@ -51,7 +55,10 @@ export default class UpdateField extends CollectionRoute {
   }
 
   async handleUpdateField(context: Context): Promise<void> {
-    await this.services.authorization.assertCanEdit(context, this.collection.name);
+    await this.services.authorization.assertCanEdit(
+      context,
+      this.collection.name
+    );
 
     const { id, fieldName, index } = context.params;
     const recordId = IdUtils.unpackId(this.collection.schema, id);
@@ -59,7 +66,7 @@ export default class UpdateField extends CollectionRoute {
 
     // Validate field is an array
     const field = this.collection.schema.fields[fieldName];
-    if (field?.type !== 'Column' || !field.columnType?.startsWith('Array<')) {
+    if (field?.type !== "Column" || !field.columnType?.startsWith("Array<")) {
       throw new ValidationError(`Field ${fieldName} is not an array`);
     }
 
@@ -72,7 +79,9 @@ export default class UpdateField extends CollectionRoute {
     // Validate array index
     const array = record[fieldName] as unknown[];
     if (!Array.isArray(array) || arrayIndex < 0 || arrayIndex >= array.length) {
-      throw new ValidationError(`Invalid index ${arrayIndex} for array of length ${array?.length || 0}`);
+      throw new ValidationError(
+        `Invalid index ${arrayIndex} for array of length ${array?.length || 0}`
+      );
     }
 
     // Parse new value from request body
@@ -86,7 +95,10 @@ export default class UpdateField extends CollectionRoute {
 
     // Fetch updated record and return
     const updated = await this.collection.get(this.caller, recordId);
-    context.response.body = this.services.serializer.serialize(this.collection, updated);
+    context.response.body = this.services.serializer.serialize(
+      this.collection,
+      updated
+    );
     context.response.status = 200;
   }
 
@@ -98,11 +110,16 @@ export default class UpdateField extends CollectionRoute {
     const elementType = this.extractElementType(columnType); // Array<String> → String
 
     switch (elementType) {
-      case 'String': return String(value);
-      case 'Number': return Number(value);
-      case 'Boolean': return Boolean(value);
-      case 'Json': return value; // Complex objects
-      default: return value;
+      case "String":
+        return String(value);
+      case "Number":
+        return Number(value);
+      case "Boolean":
+        return Boolean(value);
+      case "Json":
+        return value; // Complex objects
+      default:
+        return value;
     }
   }
 }
@@ -1116,6 +1133,7 @@ end
 **Target: >95% code coverage**
 
 1. **Happy Path Tests:**
+
    - String array update
    - Number array update
    - Boolean array update
@@ -1126,6 +1144,7 @@ end
    - Last element
 
 2. **Error Path Tests:**
+
    - Permission denied (403)
    - Non-existent field (404)
    - Non-existent record (404)
@@ -1150,12 +1169,14 @@ end
 **Full end-to-end request flow:**
 
 1. **Successful Updates:**
+
    - Complete request/response cycle
    - Database persistence verification
    - JSON:API format validation
    - Multiple data types
 
 2. **Error Scenarios:**
+
    - HTTP status codes correct
    - Error messages clear
    - Error response format JSON:API compliant
@@ -1208,6 +1229,7 @@ end
 **Scenario:** User wants to fix a typo in one tag without re-uploading all tags
 
 **Current Approach (Without Endpoint):**
+
 ```javascript
 // Frontend must do:
 1. GET /forest/posts/123 - Fetch entire record
@@ -1216,13 +1238,21 @@ end
 ```
 
 **With Update Field Endpoint:**
+
 ```javascript
 // Frontend can:
-PUT /forest/posts/123/relationships/tags/2
-Body: { data: { attributes: { value: "corrected-tag" } } }
+PUT / forest / posts / 123 / relationships / tags / 2;
+Body: {
+  data: {
+    attributes: {
+      value: "corrected-tag";
+    }
+  }
+}
 ```
 
 **Benefits:**
+
 - Single request instead of two
 - No need to fetch entire record
 - Atomic operation
@@ -1235,6 +1265,7 @@ Body: { data: { attributes: { value: "corrected-tag" } } }
 **Scenario:** Admin needs to adjust quantity of one item in an order
 
 **Data Structure:**
+
 ```json
 {
   "id": 456,
@@ -1247,6 +1278,7 @@ Body: { data: { attributes: { value: "corrected-tag" } } }
 ```
 
 **Request:**
+
 ```http
 PUT /forest/orders/456/relationships/line_items/0
 Content-Type: application/json
@@ -1265,6 +1297,7 @@ Content-Type: application/json
 ```
 
 **Result:**
+
 ```json
 {
   "line_items": [
@@ -1282,6 +1315,7 @@ Content-Type: application/json
 **Scenario:** Project management app with tasks array, need to update one task's status
 
 **Data Structure:**
+
 ```json
 {
   "id": 789,
@@ -1294,6 +1328,7 @@ Content-Type: application/json
 ```
 
 **Request:**
+
 ```http
 PUT /forest/projects/789/relationships/tasks/1
 Content-Type: application/json
@@ -1318,6 +1353,7 @@ Content-Type: application/json
 **Scenario:** Product has multiple user ratings, need to correct one rating
 
 **Request:**
+
 ```http
 PUT /forest/products/321/relationships/ratings/3
 Content-Type: application/json
@@ -1332,6 +1368,7 @@ Content-Type: application/json
 ```
 
 **Type Coercion:**
+
 - If value sent as string "4.5", automatically coerced to float
 - If value sent as integer 4, coerced to float 4.0
 - Validates it's a valid number
@@ -1345,6 +1382,7 @@ Content-Type: application/json
 **Scenario:** Field value is empty array `[]`
 
 **Behavior:**
+
 ```ruby
 # Any index will be out of bounds
 PUT /forest/users/123/relationships/tags/0
@@ -1364,6 +1402,7 @@ PUT /forest/users/123/relationships/tags/0
 **Scenario:** Field value is `null` instead of array
 
 **Behavior:**
+
 ```ruby
 PUT /forest/users/123/relationships/tags/0
 
@@ -1382,6 +1421,7 @@ PUT /forest/users/123/relationships/tags/0
 **Scenario:** Array has 10,000+ elements
 
 **Optimization:**
+
 ```ruby
 # Use array indexing directly, don't iterate
 array = record[field_name]
@@ -1394,6 +1434,7 @@ updated_array[index] = new_value  # O(1)
 ```
 
 **PostgreSQL Optimization (Optional):**
+
 ```ruby
 # Instead of fetch → modify → update
 # Use native array update:
@@ -1410,6 +1451,7 @@ collection.execute_raw_query(
 **Scenario:** Field is array of arrays
 
 **Schema:**
+
 ```ruby
 {
   matrix: { type: 'Column', column_type: 'Array<Array<Number>>' }
@@ -1417,10 +1459,12 @@ collection.execute_raw_query(
 ```
 
 **Current Implementation:**
+
 - Only updates first-level array element
 - To update nested element: update entire sub-array
 
 **Example:**
+
 ```ruby
 # matrix = [[1,2,3], [4,5,6], [7,8,9]]
 # To update matrix[1][2] (value 6):
@@ -1439,6 +1483,7 @@ Consider supporting: `PUT /forest/data/123/relationships/matrix/1/2`
 ### Edge Case 5: Type Coercion Edge Cases
 
 **String to Number:**
+
 ```ruby
 "123" → 123.0        # Valid
 "12.5" → 12.5        # Valid
@@ -1448,6 +1493,7 @@ Consider supporting: `PUT /forest/data/123/relationships/matrix/1/2`
 ```
 
 **Boolean Coercion:**
+
 ```ruby
 true → true          # Valid
 "true" → true        # Valid
@@ -1465,6 +1511,7 @@ false → false        # Valid
 **Scenario:** Two users update same array element simultaneously
 
 **Behavior:**
+
 ```ruby
 # Initial: tags = ['a', 'b', 'c']
 
@@ -1476,11 +1523,13 @@ false → false        # Valid
 ```
 
 **Mitigation:**
+
 - Use database transactions (Rails default)
 - Consider optimistic locking for critical updates
 - Add version field for conflict detection
 
 **Optimistic Locking (Optional):**
+
 ```ruby
 # Add version field to schema
 collection.update(caller, record_id, {
@@ -1497,16 +1546,17 @@ collection.update(caller, record_id, {
 
 ### Benchmark Targets
 
-| Operation | Target Time | Max Memory |
-|-----------|-------------|------------|
-| Update element in 10-element array | <50ms | <5MB |
-| Update element in 100-element array | <100ms | <10MB |
-| Update element in 1000-element array | <200ms | <20MB |
-| Update element in 10000-element array | <500ms | <50MB |
+| Operation                             | Target Time | Max Memory |
+| ------------------------------------- | ----------- | ---------- |
+| Update element in 10-element array    | <50ms       | <5MB       |
+| Update element in 100-element array   | <100ms      | <10MB      |
+| Update element in 1000-element array  | <200ms      | <20MB      |
+| Update element in 10000-element array | <500ms      | <50MB      |
 
 ### Optimization Strategies
 
 1. **Shallow Copy for Large Arrays:**
+
 ```ruby
 # Good: Shallow copy (O(n) but fast)
 updated_array = array.dup
@@ -1517,6 +1567,7 @@ updated_array = Marshal.load(Marshal.dump(array))
 ```
 
 2. **Database-Level Updates (PostgreSQL):**
+
 ```ruby
 # For PostgreSQL arrays, consider native operations:
 # Instead of: fetch → modify in Ruby → save
@@ -1529,6 +1580,7 @@ end
 ```
 
 3. **Lazy Loading:**
+
 ```ruby
 # Only fetch necessary fields
 projection = Projection.new([field_name] + primary_keys)
@@ -1536,6 +1588,7 @@ record = collection.get(caller, record_id, projection)
 ```
 
 4. **Connection Pooling:**
+
 ```ruby
 # Ensure adequate connection pool for concurrent updates
 # config/database.yml
@@ -1547,11 +1600,13 @@ pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 10 } %>
 ## 🚀 Deployment Plan
 
 ### Phase 1: Development (Week 1)
+
 - [ ] Day 1-2: Implement core route handler
 - [ ] Day 3-4: Write comprehensive tests
 - [ ] Day 5: Code review and refinement
 
 ### Phase 2: Staging (Week 2)
+
 - [ ] Day 1: Deploy to staging environment
 - [ ] Day 2: Integration testing with frontend
 - [ ] Day 3: Performance testing with production-like data
@@ -1559,6 +1614,7 @@ pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 10 } %>
 - [ ] Day 5: Bug fixes and polish
 
 ### Phase 3: Production (Week 3)
+
 - [ ] Day 1: Deploy to production (off-peak hours)
 - [ ] Day 2-7: Monitor for errors, performance issues
 - [ ] Update documentation and announce feature
@@ -1632,21 +1688,25 @@ pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 10 } %>
 ### Common Issues
 
 **Issue 1: "Field not found" despite field existing**
+
 - Check field name matches schema exactly (case-sensitive)
 - Verify collection name is correct
 - Check field type in schema (must be Column)
 
 **Issue 2: "Index out of bounds" for valid index**
+
 - Array might be empty (length 0)
 - Check actual array value in database
 - Verify index is 0-based, not 1-based
 
 **Issue 3: "Type coercion failed"**
+
 - Check array element type in schema
 - Ensure value format matches expected type
 - Review type coercion logic for edge cases
 
 **Issue 4: Concurrent updates causing data loss**
+
 - Implement optimistic locking
 - Add version field to records
 - Use database transactions properly

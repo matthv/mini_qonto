@@ -1,4 +1,33 @@
+# NOT TO IMPLEMENT
+
+# NOT TO IMPLEMENT
+
+# NOT TO IMPLEMENT
+
+# NOT TO IMPLEMENT
+
+# NOT TO IMPLEMENT
+
+# NOT TO IMPLEMENT
+
+# NOT TO IMPLEMENT
+
+# NOT TO IMPLEMENT
+
+# NOT TO IMPLEMENT
+
+# NOT TO IMPLEMENT
+
+# NOT TO IMPLEMENT
+
+# NOT TO IMPLEMENT
+
+# NOT TO IMPLEMENT
+
+# NOT TO IMPLEMENT
+
 # TODO 005: Body Size Limits - Implementation Guide
+
 ## Medium Priority (P2) - Forest Admin Agent Ruby
 
 **Project:** mini_qonto
@@ -13,12 +42,14 @@
 Implement configurable request body size limits to prevent memory exhaustion, DoS attacks, and control resource usage in production environments.
 
 **Current Gap:**
+
 - No configurable body size limits
 - Rails default limits may be too permissive
 - Cannot enforce API-level size restrictions
 - Risk of memory exhaustion from large payloads
 
 **Target Solution:**
+
 - Configurable `max_body_size` (default: 50MB)
 - Middleware that validates Content-Length header
 - Streaming body size validation for chunked requests
@@ -26,6 +57,7 @@ Implement configurable request body size limits to prevent memory exhaustion, Do
 - Can be disabled entirely if needed
 
 **Use Cases:**
+
 - Prevent DoS attacks via large payloads
 - Enforce API Gateway limits (AWS: 6MB, GCP: 32MB)
 - Control memory usage in memory-constrained environments
@@ -43,11 +75,11 @@ Implement configurable request body size limits to prevent memory exhaustion, Do
 ```typescript
 type AgentOptions = {
   // Legacy option (deprecated)
-  maxBodySize?: string;  // e.g., '50mb'
+  maxBodySize?: string; // e.g., '50mb'
 
   // New option (recommended)
   bodyParserOptions?: {
-    jsonLimit?: number | string;     // Default: '50mb'
+    jsonLimit?: number | string; // Default: '50mb'
     enableRawChecking?: boolean;
   };
 };
@@ -59,15 +91,18 @@ type AgentOptions = {
 
 ```typescript
 // Using @koa/bodyparser
-router.use(bodyParser({
-  encoding: 'utf-8',
-  jsonLimit: options.bodyParserOptions?.jsonLimit || '50mb',
-  parsedMethods: ['POST', 'PUT', 'PATCH', 'DELETE'],
-  ...options.bodyParserOptions,
-}));
+router.use(
+  bodyParser({
+    encoding: "utf-8",
+    jsonLimit: options.bodyParserOptions?.jsonLimit || "50mb",
+    parsedMethods: ["POST", "PUT", "PATCH", "DELETE"],
+    ...options.bodyParserOptions,
+  })
+);
 ```
 
 ### Behavior:
+
 - Checks body size before parsing
 - Returns 413 if body exceeds limit
 - Only applies to POST, PUT, PATCH, DELETE
@@ -161,6 +196,7 @@ end
 ```
 
 **Key Points:**
+
 - `max_body_size`: Maximum request body size in bytes (default: 50MB)
 - `enforce_body_size_limit`: Enable/disable middleware (default: true)
 - Uses ActiveSupport's `.megabytes` helper for readability
@@ -384,16 +420,19 @@ end
 **Key Features:**
 
 1. **Early Rejection:**
+
    - Checks Content-Length header first
    - Rejects immediately if over limit
    - No body parsing occurs
 
 2. **Streaming Validation:**
+
    - Wraps rack.input for chunked encoding
    - Tracks cumulative bytes read
    - Raises error if limit exceeded during read
 
 3. **Clear Error Messages:**
+
    - Human-readable sizes (MB, KB)
    - Both absolute and human-readable in response
    - Custom headers with size information
@@ -456,6 +495,7 @@ end
 ```
 
 **Key Points:**
+
 - Middleware inserted after CORS
 - Only inserted if `enforce_body_size_limit` is true
 - Logs configuration at startup
@@ -478,6 +518,7 @@ end
 ```
 
 **Behavior:**
+
 - POST/PUT/PATCH/DELETE limited to 50MB
 - Requests over 50MB return 413
 
@@ -1272,12 +1313,14 @@ end
 **Scenario:** Client sends chunked request without Content-Length header
 
 **Handling:**
+
 - Content-Length check skipped
 - BodySizeValidator wraps rack.input
 - Size validated during streaming
 - Error raised when limit exceeded
 
 **Test:**
+
 ```ruby
 env = Rack::MockRequest.env_for('/', method: 'POST', 'rack.input' => large_io)
 env.delete('CONTENT_LENGTH')
@@ -1290,10 +1333,12 @@ env.delete('CONTENT_LENGTH')
 **Scenario:** Request body exactly equals max_body_size
 
 **Handling:**
+
 - Should be allowed (check is `>`, not `>=`)
 - Test both Content-Length and streaming
 
 **Test:**
+
 ```ruby
 body = 'a' * max_size
 expect(status).to eq(200)
@@ -1306,6 +1351,7 @@ expect(status).to eq(200)
 **Scenario:** File upload with multipart/form-data
 
 **Handling:**
+
 - Content-Length includes all parts + boundaries
 - Limit applies to entire request body
 - Individual files not checked separately
@@ -1319,6 +1365,7 @@ expect(status).to eq(200)
 **Scenario:** Client sends compressed request body
 
 **Handling:**
+
 - Content-Length is compressed size
 - Decompression happens after size check
 - Decompressed size could exceed limit
@@ -1332,9 +1379,10 @@ expect(status).to eq(200)
 **Scenario:** Multiple large requests simultaneously
 
 **Handling:**
+
 - Each request checked independently
 - No global rate limiting
-- Memory usage = number of concurrent requests * request size
+- Memory usage = number of concurrent requests \* request size
 
 **Recommendation:** Combine with connection pool limits
 
@@ -1347,6 +1395,7 @@ expect(status).to eq(200)
 **Attack:** Send many large requests to exhaust memory
 
 **Protection:**
+
 - Early rejection via Content-Length
 - No body parsing if over limit
 - Minimal memory footprint per request
@@ -1358,6 +1407,7 @@ expect(status).to eq(200)
 **Attack:** Send body very slowly to tie up connections
 
 **Protection:**
+
 - Configure request timeout at server level (Puma, Unicorn)
 - Our middleware checks size, not speed
 - Recommend: `Rack::Timeout` middleware
@@ -1369,6 +1419,7 @@ expect(status).to eq(200)
 **Attack:** Send fake Content-Length, then send more data
 
 **Protection:**
+
 - BodySizeValidator tracks actual bytes read
 - Catches discrepancy during streaming
 - Error raised when actual exceeds limit
@@ -1380,6 +1431,7 @@ expect(status).to eq(200)
 **Concern:** Error messages reveal internal limits
 
 **Mitigation:**
+
 - Error messages are helpful, not sensitive
 - Limit information is not secret
 - Custom error messages possible via config
@@ -1390,20 +1442,20 @@ expect(status).to eq(200)
 
 ### Benchmarks (Expected)
 
-| Scenario | Overhead | Notes |
-|----------|----------|-------|
-| Small request (<1KB) | <1ms | Content-Length check only |
-| Medium request (1-50MB) | <1ms | Content-Length check only |
-| Large request (>50MB) | ~0ms | Rejected before body parsing |
-| Chunked request (small) | <5ms | Streaming validation |
-| GET request | 0ms | Bypassed entirely |
+| Scenario                | Overhead | Notes                        |
+| ----------------------- | -------- | ---------------------------- |
+| Small request (<1KB)    | <1ms     | Content-Length check only    |
+| Medium request (1-50MB) | <1ms     | Content-Length check only    |
+| Large request (>50MB)   | ~0ms     | Rejected before body parsing |
+| Chunked request (small) | <5ms     | Streaming validation         |
+| GET request             | 0ms      | Bypassed entirely            |
 
 ### Memory Usage
 
-| Scenario | Memory | Notes |
-|----------|--------|-------|
-| Under limit | Normal | Passes through to Rails parser |
-| Over limit (header) | ~1KB | Error response only |
+| Scenario               | Memory   | Notes                          |
+| ---------------------- | -------- | ------------------------------ |
+| Under limit            | Normal   | Passes through to Rails parser |
+| Over limit (header)    | ~1KB     | Error response only            |
 | Over limit (streaming) | Variable | Depends on when limit exceeded |
 
 ---
@@ -1413,6 +1465,7 @@ expect(status).to eq(200)
 ### Issue 1: "Getting 413 errors in development"
 
 **Solution:**
+
 ```ruby
 # config/initializers/forest_admin.rb
 if Rails.env.development?
@@ -1425,8 +1478,10 @@ end
 ### Issue 2: "AWS Lambda gives 413 before reaching code"
 
 **Solution:**
+
 - API Gateway has 6MB limit (can't be changed)
 - Configure Forest Admin to match:
+
 ```ruby
 config.max_body_size = 6.megabytes
 ```
@@ -1436,8 +1491,10 @@ config.max_body_size = 6.megabytes
 ### Issue 3: "Multipart uploads failing"
 
 **Check:**
+
 - Entire multipart body counts (including boundaries)
 - Increase limit if uploading multiple files:
+
 ```ruby
 config.max_body_size = 100.megabytes
 ```
@@ -1449,8 +1506,10 @@ config.max_body_size = 100.megabytes
 **Not Supported:** Middleware applies globally to all Forest Admin routes
 
 **Workaround:**
+
 - Mount Forest Admin at different paths with separate configs
 - Or use Rails routing constraints:
+
 ```ruby
 # Advanced: custom constraint
 constraints(BodySizeConstraint.new(100.megabytes)) do

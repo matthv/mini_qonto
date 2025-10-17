@@ -1,3 +1,35 @@
+# IMPLEMENTED: https://github.com/ForestAdmin/agent-ruby/pull/156
+
+# IMPLEMENTED: https://github.com/ForestAdmin/agent-ruby/pull/156
+
+# IMPLEMENTED: https://github.com/ForestAdmin/agent-ruby/pull/156
+
+# IMPLEMENTED: https://github.com/ForestAdmin/agent-ruby/pull/156
+
+# IMPLEMENTED: https://github.com/ForestAdmin/agent-ruby/pull/156
+
+# IMPLEMENTED: https://github.com/ForestAdmin/agent-ruby/pull/156
+
+# IMPLEMENTED: https://github.com/ForestAdmin/agent-ruby/pull/156
+
+# IMPLEMENTED: https://github.com/ForestAdmin/agent-ruby/pull/156
+
+# IMPLEMENTED: https://github.com/ForestAdmin/agent-ruby/pull/156
+
+# IMPLEMENTED: https://github.com/ForestAdmin/agent-ruby/pull/156
+
+# IMPLEMENTED: https://github.com/ForestAdmin/agent-ruby/pull/156
+
+# IMPLEMENTED: https://github.com/ForestAdmin/agent-ruby/pull/156
+
+# IMPLEMENTED: https://github.com/ForestAdmin/agent-ruby/pull/156
+
+# IMPLEMENTED: https://github.com/ForestAdmin/agent-ruby/pull/156
+
+# IMPLEMENTED: https://github.com/ForestAdmin/agent-ruby/pull/156
+
+# IMPLEMENTED: https://github.com/ForestAdmin/agent-ruby/pull/156
+
 # TODO 010: Fix Incorrect Pagination Validation Logic
 
 **Priority:** P0 - HIGH
@@ -175,12 +207,12 @@ end
 
 ### Truth Table Analysis
 
-| Page Valid | Limit Valid | Current Behavior (`||`) | Expected Behavior (`&&`) | Correct? |
-|------------|-------------|------------------------|--------------------------|----------|
-| ✅ Valid   | ✅ Valid    | Pass ✅                | Pass ✅                  | ✅ Yes   |
-| ✅ Valid   | ❌ Invalid  | **Pass ❌**            | Raise ✅                 | ❌ **BUG** |
-| ❌ Invalid | ✅ Valid    | **Pass ❌**            | Raise ✅                 | ❌ **BUG** |
-| ❌ Invalid | ❌ Invalid  | Raise ✅               | Raise ✅                 | ✅ Yes   |
+| Page Valid | Limit Valid | Current Behavior (` |          | `)         | Expected Behavior (`&&`) | Correct? |
+| ---------- | ----------- | ------------------- | -------- | ---------- | ------------------------ | -------- |
+| ✅ Valid   | ✅ Valid    | Pass ✅             | Pass ✅  | ✅ Yes     |
+| ✅ Valid   | ❌ Invalid  | **Pass ❌**         | Raise ✅ | ❌ **BUG** |
+| ❌ Invalid | ✅ Valid    | **Pass ❌**         | Raise ✅ | ❌ **BUG** |
+| ❌ Invalid | ❌ Invalid  | Raise ✅            | Raise ✅ | ✅ Yes     |
 
 **Result:** 2 out of 4 cases are incorrect (50% failure rate)
 
@@ -198,6 +230,7 @@ end
 ### Boolean Logic Explanation
 
 **Current Code:**
+
 ```ruby
 unless !A.nil? || !B.nil?
   raise
@@ -205,6 +238,7 @@ end
 ```
 
 Translates to:
+
 ```
 unless (A is valid OR B is valid)
   raise
@@ -212,11 +246,13 @@ end
 ```
 
 Which means:
+
 ```
 raise only if (A is invalid AND B is invalid)
 ```
 
 **Should Be:**
+
 ```ruby
 unless !A.nil? && !B.nil?
   raise
@@ -224,6 +260,7 @@ end
 ```
 
 Translates to:
+
 ```
 unless (A is valid AND B is valid)
   raise
@@ -231,6 +268,7 @@ end
 ```
 
 Which means:
+
 ```
 raise if (A is invalid OR B is invalid)
 ```
@@ -259,16 +297,19 @@ unless (A AND B)       # Raise if NOT (A AND B) = (NOT A) OR (NOT B)
 ### What Breaks
 
 1. **Invalid Queries**
+
    - Invalid page size becomes `LIMIT 0` (returns empty results)
    - Invalid page number becomes `OFFSET -50` or `OFFSET 0`
    - Users see wrong data without knowing why
 
 2. **Silent Failures**
+
    - No error message to user
    - Difficult to debug (looks like valid request)
    - Frontend pagination breaks mysteriously
 
 3. **Database Performance**
+
    - `LIMIT 0` queries are wasteful
    - Negative offsets might cause DB errors (depending on adapter)
    - Unexpected query patterns
@@ -280,14 +321,14 @@ unless (A AND B)       # Raise if NOT (A AND B) = (NOT A) OR (NOT B)
 
 ### Failure Modes
 
-| Input | Current Behavior | Impact | Frequency |
-|-------|------------------|--------|-----------|
-| `size=abc&number=1` | Passes validation, returns 0 records | Empty page | Common (typos) |
-| `size=50&number=abc` | Passes validation, OFFSET 0 | Wrong page | Common (typos) |
-| `size=-50&number=1` | Passes validation, LIMIT 0 | Empty page | Rare (malicious) |
-| `size=50&number=-1` | Passes validation, OFFSET -100 | Error/wrong data | Rare (malicious) |
-| `size=1.5&number=1` | Passes validation, LIMIT 1 | Unexpected | Rare |
-| `size=0&number=1` | Passes validation, LIMIT 0 | Empty page | Occasional |
+| Input                | Current Behavior                     | Impact           | Frequency        |
+| -------------------- | ------------------------------------ | ---------------- | ---------------- |
+| `size=abc&number=1`  | Passes validation, returns 0 records | Empty page       | Common (typos)   |
+| `size=50&number=abc` | Passes validation, OFFSET 0          | Wrong page       | Common (typos)   |
+| `size=-50&number=1`  | Passes validation, LIMIT 0           | Empty page       | Rare (malicious) |
+| `size=50&number=-1`  | Passes validation, OFFSET -100       | Error/wrong data | Rare (malicious) |
+| `size=1.5&number=1`  | Passes validation, LIMIT 1           | Unexpected       | Rare             |
+| `size=0&number=1`    | Passes validation, LIMIT 0           | Empty page       | Occasional       |
 
 ### Real-World Scenario
 
@@ -309,18 +350,21 @@ Root cause: Validation bug allowed invalid parameter
 ### Database-Specific Behavior
 
 **PostgreSQL:**
+
 ```sql
 SELECT * FROM bank_accounts LIMIT 0 OFFSET -50;
 -- Returns 0 rows (LIMIT 0 overrides everything)
 ```
 
 **MySQL:**
+
 ```sql
 SELECT * FROM bank_accounts LIMIT 0 OFFSET -50;
 -- Error: "You have an error in your SQL syntax"
 ```
 
 **SQLite:**
+
 ```sql
 SELECT * FROM bank_accounts LIMIT 0 OFFSET -50;
 -- Returns 0 rows (negative offset treated as 0)
@@ -357,6 +401,7 @@ end
 ```
 
 **Benefits:**
+
 - Clear variable names
 - Easy to debug (can inspect `page_valid` and `limit_valid`)
 - Correct logic with `&&`
@@ -388,11 +433,13 @@ end
 ```
 
 **Benefits:**
+
 - Only 1 character changed (`||` → `&&`)
 - Minimal diff
 - Quick to review
 
 **Drawbacks:**
+
 - Still uses double negative (harder to read)
 
 **Changes:** 1 character changed
@@ -424,6 +471,7 @@ end
 ```
 
 **Benefits:**
+
 - No double negatives
 - Easier to understand
 - Correct logic with `||`
@@ -470,6 +518,7 @@ end
 ```
 
 **Benefits:**
+
 - Best error messages
 - Testable in isolation
 - Easier to extend
@@ -770,6 +819,7 @@ end
 ### Pre-Deployment
 
 1. **Review Current Logs**
+
    - Search for "Invalid pagination" errors
    - Check if bug has caused issues in production
    - Identify frequency of invalid parameters
@@ -788,6 +838,7 @@ end
 3. Zero risk to valid requests
 
 **Timeline:**
+
 - Development: 5 minutes
 - Testing: 15 minutes
 - Review: 5 minutes
@@ -801,11 +852,13 @@ Include in next regular release.
 ### Post-Deployment
 
 1. **Monitor Error Rates**
+
    - Watch for increase in "Invalid pagination" errors
    - Indicates previously-silent failures now being caught
    - Expected and good (bug being caught)
 
 2. **User Reports**
+
    - May receive reports of "new errors"
    - Actually existing errors now being reported
    - Provide clear explanation
@@ -832,10 +885,12 @@ Rollback should NOT be needed - fix only makes validation stricter for invalid i
 ### Similar Bugs to Check
 
 1. **Filter Validation**
+
    - Check if filter parameter validation has similar issue
    - File: `condition_tree_parser.rb`
 
 2. **Sort Validation**
+
    - Check sort parameter validation
    - File: `query_string_parser.rb`
 
@@ -846,6 +901,7 @@ Rollback should NOT be needed - fix only makes validation stricter for invalid i
 ### Future Improvements
 
 1. **Add Maximum Page Size**
+
    ```ruby
    MAX_PAGE_SIZE = 1000
 
@@ -855,6 +911,7 @@ Rollback should NOT be needed - fix only makes validation stricter for invalid i
    ```
 
 2. **Add Better Error Messages**
+
    ```ruby
    errors = []
    errors << "page[number] must be a positive integer" unless page_valid
@@ -945,18 +1002,21 @@ Rollback should NOT be needed - fix only makes validation stricter for invalid i
 ```
 
 **Breakdown:**
+
 - `\A` - Start of string (not line)
 - `[+]?` - Optional plus sign (note: minus not allowed)
 - `\d+` - One or more digits
 - `\z` - End of string (not line)
 
 **Matches:**
+
 - `"1"` ✅
 - `"123"` ✅
 - `"+50"` ✅
 - `"0"` ✅ (though should be rejected logically)
 
 **Does NOT Match:**
+
 - `"-1"` ❌ (no minus in pattern)
 - `"1.5"` ❌ (no decimal point)
 - `"abc"` ❌ (not digits)
@@ -970,6 +1030,7 @@ Rollback should NOT be needed - fix only makes validation stricter for invalid i
 ```
 
 This would reject:
+
 - `"0"` (zero page size/number)
 - `"+50"` (leading plus)
 - `"007"` (leading zeros)
@@ -993,12 +1054,12 @@ end
 Raise if: NOT (A OR B) = (NOT A) AND (NOT B)
 ```
 
-| A | B | A OR B | NOT (A OR B) | Raises? |
-|---|---|--------|--------------|---------|
-| T | T | T      | F            | No      |
-| T | F | T      | F            | No ❌    |
-| F | T | T      | F            | No ❌    |
-| F | F | F      | T            | Yes     |
+| A   | B   | A OR B | NOT (A OR B) | Raises? |
+| --- | --- | ------ | ------------ | ------- |
+| T   | T   | T      | F            | No      |
+| T   | F   | T      | F            | No ❌   |
+| F   | T   | T      | F            | No ❌   |
+| F   | F   | F      | T            | Yes     |
 
 ### Fixed Logic (CORRECT)
 
@@ -1010,17 +1071,17 @@ end
 Raise if: NOT (A AND B) = (NOT A) OR (NOT B)
 ```
 
-| A | B | A AND B | NOT (A AND B) | Raises? |
-|---|---|---------|---------------|---------|
-| T | T | T       | F             | No      |
-| T | F | F       | T             | Yes ✅   |
-| F | T | F       | T             | Yes ✅   |
-| F | F | F       | T             | Yes     |
+| A   | B   | A AND B | NOT (A AND B) | Raises? |
+| --- | --- | ------- | ------------- | ------- |
+| T   | T   | T       | F             | No      |
+| T   | F   | F       | T             | Yes ✅  |
+| F   | T   | F       | T             | Yes ✅  |
+| F   | F   | F       | T             | Yes     |
 
 ---
 
 **TODO End**
 
-*Priority: P0 - Fix immediately*
-*Estimated Time: 5 minutes development + 25 minutes testing/deployment*
-*Risk: None - Pure bug fix*
+_Priority: P0 - Fix immediately_
+_Estimated Time: 5 minutes development + 25 minutes testing/deployment_
+_Risk: None - Pure bug fix_
