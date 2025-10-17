@@ -282,8 +282,8 @@ describe("CSV Streaming Export - Acceptance Criteria", () => {
         const csvContent = fs.readFileSync(csvFilePath, "utf-8");
         const lines = csvContent.split("\n").filter(line => line.trim());
 
-        // Segment should work and return at least header
-        expect(lines.length).toBeGreaterThanOrEqual(1); // At least header
+        // Segment should work and return the header + the 10 named organizations
+        expect(lines.length).toEqual(11);
         expect(lines[0]).toContain("name,id");
 
         // Cleanup
