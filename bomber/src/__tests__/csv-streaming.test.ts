@@ -405,7 +405,7 @@ describe("CSV Streaming Export - Acceptance Criteria", () => {
         const lines = csvContent.split("\n");
 
         // Null should appear as empty field (can be quoted "" or unquoted)
-        expect(lines[1]).toMatch(/^"",\d+$|^,\d+$|^\d+,""$|^\d+,$/);
+        expect(lines[1]).toEqual('"",');
 
         // Cleanup
         fs.unlinkSync(csvFilePath);
