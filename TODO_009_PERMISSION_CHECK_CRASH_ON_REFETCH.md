@@ -1,3 +1,47 @@
+# implemented https://github.com/ForestAdmin/agent-ruby/pull/157/files
+
+# implemented https://github.com/ForestAdmin/agent-ruby/pull/157/files
+
+# implemented https://github.com/ForestAdmin/agent-ruby/pull/157/files
+
+# implemented https://github.com/ForestAdmin/agent-ruby/pull/157/files
+
+# implemented https://github.com/ForestAdmin/agent-ruby/pull/157/files
+
+# implemented https://github.com/ForestAdmin/agent-ruby/pull/157/files
+
+# implemented https://github.com/ForestAdmin/agent-ruby/pull/157/files
+
+# implemented https://github.com/ForestAdmin/agent-ruby/pull/157/files
+
+# implemented https://github.com/ForestAdmin/agent-ruby/pull/157/files
+
+# implemented https://github.com/ForestAdmin/agent-ruby/pull/157/files
+
+# implemented https://github.com/ForestAdmin/agent-ruby/pull/157/files
+
+# implemented https://github.com/ForestAdmin/agent-ruby/pull/157/files
+
+# implemented https://github.com/ForestAdmin/agent-ruby/pull/157/files
+
+# implemented https://github.com/ForestAdmin/agent-ruby/pull/157/files
+
+# implemented https://github.com/ForestAdmin/agent-ruby/pull/157/files
+
+# implemented https://github.com/ForestAdmin/agent-ruby/pull/157/files
+
+# implemented https://github.com/ForestAdmin/agent-ruby/pull/157/files
+
+# implemented https://github.com/ForestAdmin/agent-ruby/pull/157/files
+
+# implemented https://github.com/ForestAdmin/agent-ruby/pull/157/files
+
+# implemented https://github.com/ForestAdmin/agent-ruby/pull/157/files
+
+# implemented https://github.com/ForestAdmin/agent-ruby/pull/157/files
+
+# implemented https://github.com/ForestAdmin/agent-ruby/pull/157/files
+
 # TODO 009: Fix Permission Check Crash on Refetch
 
 **Priority:** P0 - CRITICAL
@@ -109,6 +153,7 @@ end
 ### Real-World Triggers
 
 **Scenario 1: Rolling Deployment**
+
 ```
 Server 1: Old schema with collection X
 Server 2: New schema without collection X
@@ -116,6 +161,7 @@ User hits Server 1 → refetch gets data from Server 2 → CRASH
 ```
 
 **Scenario 2: Schema Migration**
+
 ```
 T0: Collection renamed: old_table → new_table
 T1: User has permission for old_table (cached)
@@ -124,6 +170,7 @@ T3: new_table exists, old_table doesn't → CRASH
 ```
 
 **Scenario 3: Permission API Lag**
+
 ```
 T0: Developer removes collection from code
 T1: Schema update sent to Forest Admin
@@ -133,6 +180,7 @@ T4: Refetch happens → CRASH
 ```
 
 **Scenario 4: Concurrent Schema Changes**
+
 ```
 Admin A: Removes collection via UI
 Admin B: User tries to access removed collection
@@ -153,6 +201,7 @@ Refetch pulls updated schema → CRASH
 ### Code Evolution Theory
 
 **Original code (probably):**
+
 ```ruby
 def can?(user_data, collection, action)
   collections_data = get_collections_permissions_data
@@ -170,6 +219,7 @@ end
 ```
 
 **Refactored code (bug introduced):**
+
 ```ruby
 def can?(user_data, collection, action)
   collections_data = get_collections_permissions_data
@@ -218,18 +268,21 @@ end
 ### What Breaks
 
 1. **User Authentication Flow**
+
    - Any permission check can crash
    - Blocks all access to resources
    - No graceful degradation
    - Affects 100% of user requests
 
 2. **Deployment Safety**
+
    - Cannot safely deploy schema changes
    - Rolling deployments become dangerous
    - Must coordinate all servers perfectly
    - Increases deployment complexity
 
 3. **Permission Refetch**
+
    - SSE cache invalidation triggers refetch
    - Periodic cache refresh triggers refetch
    - Manual permission updates trigger refetch
@@ -242,13 +295,13 @@ end
 
 ### Failure Modes
 
-| Trigger | Impact | Frequency | Detection Time |
-|---------|--------|-----------|----------------|
-| Rolling deployment | All requests fail | Every deployment | Immediate |
-| Schema migration | Specific requests fail | During migrations | Minutes |
-| Collection removal | Users lose access | When accessed | Immediate |
-| Permission cache refresh | Random crashes | Periodic (15 min) | Intermittent |
-| SSE invalidation | Crash on update | When permissions change | Immediate |
+| Trigger                  | Impact                 | Frequency               | Detection Time |
+| ------------------------ | ---------------------- | ----------------------- | -------------- |
+| Rolling deployment       | All requests fail      | Every deployment        | Immediate      |
+| Schema migration         | Specific requests fail | During migrations       | Minutes        |
+| Collection removal       | Users lose access      | When accessed           | Immediate      |
+| Permission cache refresh | Random crashes         | Periodic (15 min)       | Intermittent   |
+| SSE invalidation         | Crash on update        | When permissions change | Immediate      |
 
 ### Blast Radius
 
@@ -318,6 +371,7 @@ end
 ```
 
 **Changes:**
+
 - Added `collections_data[collection.name.to_sym].key?(action)` check to first validation
 - Added full existence validation after refetch
 - Added debug logging when collection missing after refetch
@@ -378,6 +432,7 @@ end
 ```
 
 **Benefits:**
+
 - DRY principle (Don't Repeat Yourself)
 - Easier to test in isolation
 - Better logging for debugging
@@ -715,11 +770,13 @@ end
 ### Pre-Deployment
 
 1. **Identify Risk Window**
+
    - Most risky during rolling deployments
    - Schema migrations are high-risk
    - Collection renames/removals are triggers
 
 2. **Current Crash Frequency**
+
    - Search logs for: `NoMethodError.*permissions`
    - Check Sentry/error tracking for permission crashes
    - Identify affected collections
@@ -755,11 +812,13 @@ end
 ### Post-Deployment
 
 1. **Monitor Logs**
+
    - Watch for debug messages about missing collections
    - Track refetch frequency
    - Verify no NoMethodError in permissions
 
 2. **Metrics to Track**
+
    - Permission cache hit rate
    - Refetch frequency
    - Number of "collection not found" debug logs
@@ -787,11 +846,13 @@ Rollback should NOT be needed - this is a pure defensive fix.
 ### Similar Bugs in Codebase
 
 1. **IP Whitelist Service** (Issue 1.1)
+
    - Same pattern: nil reference on API response
    - Also needs existence validation
    - Already documented in TODO_008
 
 2. **Smart Action Checker** (Section 6.1)
+
    - Similar array access without validation
    - File: `smart_action_checker.rb:88`
    - Should apply same pattern
@@ -804,6 +865,7 @@ Rollback should NOT be needed - this is a pure defensive fix.
 ### Future Improvements
 
 1. **Add Circuit Breaker**
+
    ```ruby
    def can?(user_data, collection, action)
      @refetch_failures ||= 0
@@ -821,6 +883,7 @@ Rollback should NOT be needed - this is a pure defensive fix.
    ```
 
 2. **Add Metrics**
+
    ```ruby
    def can?(user_data, collection, action)
      start_time = Time.now
@@ -835,6 +898,7 @@ Rollback should NOT be needed - this is a pure defensive fix.
    ```
 
 3. **Add Warning for Frequent Refetches**
+
    ```ruby
    def can?(user_data, collection, action)
      @refetch_count ||= 0
@@ -965,11 +1029,13 @@ Rollback should NOT be needed - this is a pure defensive fix.
 ### Edge Cases
 
 **Empty permissions:**
+
 ```ruby
 {}  # No collections
 ```
 
 **Collection with no actions:**
+
 ```ruby
 {
   bank_accounts: {}  # Collection exists but no actions defined
@@ -977,6 +1043,7 @@ Rollback should NOT be needed - this is a pure defensive fix.
 ```
 
 **Action with no roles:**
+
 ```ruby
 {
   bank_accounts: {
@@ -986,6 +1053,7 @@ Rollback should NOT be needed - this is a pure defensive fix.
 ```
 
 **Partial permissions:**
+
 ```ruby
 {
   bank_accounts: {
@@ -999,6 +1067,6 @@ Rollback should NOT be needed - this is a pure defensive fix.
 
 **TODO End**
 
-*Priority: P0 - Fix immediately*
-*Estimated Time: 20 minutes development + 40 minutes testing/deployment*
-*Risk: None - Pure defensive improvement*
+_Priority: P0 - Fix immediately_
+_Estimated Time: 20 minutes development + 40 minutes testing/deployment_
+_Risk: None - Pure defensive improvement_

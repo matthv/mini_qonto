@@ -101,13 +101,16 @@ collection.aggregate(caller, filter_with_nil_field, ...)
 ### Collections Without Primary Keys
 
 **Common Scenarios:**
+
 1. **Database Views**
+
    ```sql
    CREATE VIEW transaction_summary AS
    SELECT user_id, SUM(amount) FROM transactions GROUP BY user_id;
    ```
 
 2. **MongoDB Embedded Documents**
+
    ```ruby
    class User
      embeds_many :addresses  # Addresses have no primary key
@@ -115,11 +118,13 @@ collection.aggregate(caller, filter_with_nil_field, ...)
    ```
 
 3. **Materialized Views**
+
    ```sql
    CREATE MATERIALIZED VIEW daily_stats AS ...
    ```
 
 4. **Legacy Tables**
+
    ```sql
    -- Old table without primary key
    CREATE TABLE logs (
@@ -164,6 +169,7 @@ Condition.new(nil, 'Equal', 1)  # => TypeError
 ### Why Collections Might Not Have Primary Keys
 
 **Valid Reasons:**
+
 - Database views (read-only, derived data)
 - Embedded documents (MongoDB, Cassandra)
 - Materialized views
@@ -171,6 +177,7 @@ Condition.new(nil, 'Equal', 1)  # => TypeError
 - External data sources (APIs, files)
 
 **Invalid Reasons (Bad Practice):**
+
 - Forgot to add PK during migration
 - Legacy tables before best practices
 - Quick prototypes that made it to production
@@ -184,11 +191,13 @@ Condition.new(nil, 'Equal', 1)  # => TypeError
 ### What Breaks
 
 1. **Action Execution**
+
    - Any action with conditional permissions fails
    - Affects actions on views, embedded docs, etc.
    - User sees 500 Internal Server Error
 
 2. **Permission Checks**
+
    - Can't verify if user has permission for action
    - Blocks all actions on affected collections
    - No graceful degradation
@@ -200,13 +209,13 @@ Condition.new(nil, 'Equal', 1)  # => TypeError
 
 ### Failure Modes
 
-| Collection Type | Has PK? | Impact | Frequency |
-|-----------------|---------|--------|-----------|
-| Standard tables | Yes | No issue | 95% |
-| Database views | No | Crashes | 3% |
-| Embedded docs (MongoDB) | No | Crashes | 1% |
-| Materialized views | Sometimes | May crash | 1% |
-| Legacy tables | Sometimes | May crash | <1% |
+| Collection Type         | Has PK?   | Impact    | Frequency |
+| ----------------------- | --------- | --------- | --------- |
+| Standard tables         | Yes       | No issue  | 95%       |
+| Database views          | No        | Crashes   | 3%        |
+| Embedded docs (MongoDB) | No        | Crashes   | 1%        |
+| Materialized views      | Sometimes | May crash | 1%        |
+| Legacy tables           | Sometimes | May crash | <1%       |
 
 ### Real-World Scenario
 
@@ -258,6 +267,7 @@ end
 ```
 
 **Benefits:**
+
 - Clear error message
 - Fails fast
 - Explains why it failed
@@ -310,11 +320,13 @@ end
 ```
 
 **Benefits:**
+
 - More flexible
 - Works with more collections
 - Provides fallback
 
 **Drawbacks:**
+
 - More complex
 - Alternative ID might not be unique
 - Could cause incorrect permission checks
@@ -346,10 +358,12 @@ end
 ```
 
 **Benefits:**
+
 - Actions work on collections without PKs
 - No errors
 
 **Drawbacks:**
+
 - **SECURITY RISK:** Bypasses permission checks
 - Could allow unauthorized actions
 - Not recommended
@@ -540,6 +554,7 @@ end
 ### Pre-Deployment
 
 1. **Identify Affected Collections**
+
    ```ruby
    # Run this script to find collections without PKs
    ForestAdminAgent::Facades::Container.datasource.collections.each do |collection|
@@ -551,6 +566,7 @@ end
    ```
 
 2. **Communication**
+
    - Notify users with actions on PK-less collections
    - Explain error message they'll see
    - Provide solution (add PK or restructure)
@@ -569,6 +585,7 @@ end
 - No feature flag needed
 
 **Timeline:**
+
 - Development: 15 minutes
 - Testing: 20 minutes
 - Review: 10 minutes
@@ -578,11 +595,13 @@ end
 ### Post-Deployment
 
 1. **Monitor Error Logs**
+
    - Watch for new "no primary keys" errors
    - Indicates collections that need PKs added
    - Expected in environments with views
 
 2. **User Support**
+
    - Provide guidance for affected users
    - Help add PKs where appropriate
    - Suggest alternatives (restructure actions)
@@ -600,12 +619,14 @@ end
 If you encounter collections without PKs, evaluate:
 
 1. **Can a PK be added?**
+
    ```sql
    -- Add PK to existing table
    ALTER TABLE logs ADD COLUMN id SERIAL PRIMARY KEY;
    ```
 
 2. **Is it actually a view?**
+
    ```sql
    -- Views can't have PKs, but base tables can
    -- Consider using base table instead
@@ -620,8 +641,10 @@ If you encounter collections without PKs, evaluate:
 ### Alternative Approaches
 
 1. **Action Without Selection**
+
    - Global actions (no record selection)
    - Don't need primary keys
+
    ```ruby
    collection.add_action('Export All') do |context|
      # Acts on entire collection, no IDs needed
@@ -629,6 +652,7 @@ If you encounter collections without PKs, evaluate:
    ```
 
 2. **Custom Identifiers**
+
    - Use alternative unique field
    - Requires code modification (not recommended)
 
@@ -709,16 +733,19 @@ If you encounter collections without PKs, evaluate:
 ### When to Use Primary Keys
 
 **Always:**
+
 - Database tables
 - ActiveRecord models
 - Entity tables
 
 **Usually:**
+
 - Join tables (composite PK)
 - Logging tables (for deduplication)
 - Audit tables
 
 **Never:**
+
 - Read-only views (can't modify)
 - Derived/computed data
 - Temporary tables
@@ -726,6 +753,7 @@ If you encounter collections without PKs, evaluate:
 ### Primary Key Types
 
 **Single Column:**
+
 ```sql
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
@@ -734,6 +762,7 @@ CREATE TABLE users (
 ```
 
 **Composite (Multiple Columns):**
+
 ```sql
 CREATE TABLE user_roles (
   user_id INT,
@@ -743,6 +772,7 @@ CREATE TABLE user_roles (
 ```
 
 **Natural Key:**
+
 ```sql
 CREATE TABLE countries (
   iso_code CHAR(2) PRIMARY KEY,
@@ -751,6 +781,7 @@ CREATE TABLE countries (
 ```
 
 **Surrogate Key (Recommended):**
+
 ```sql
 CREATE TABLE transactions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -762,6 +793,6 @@ CREATE TABLE transactions (
 
 **TODO End**
 
-*Priority: P1 - Medium (bug fix)*
-*Estimated Time: 15 minutes development + 30 minutes testing*
-*Risk: None - Pure defensive improvement*
+_Priority: P1 - Medium (bug fix)_
+_Estimated Time: 15 minutes development + 30 minutes testing_
+_Risk: None - Pure defensive improvement_

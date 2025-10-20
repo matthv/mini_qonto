@@ -1,7 +1,7 @@
 PATH
   remote: /Users/albanbertolini/Projects/agent-ruby/packages/forest_admin_agent
   specs:
-    forest_admin_agent (1.8.3)
+    forest_admin_agent (1.8.6)
       activesupport (>= 6.1)
       deepsort (~> 0.4.5)
       dry-container (~> 0.11)
@@ -20,7 +20,7 @@ PATH
 PATH
   remote: /Users/albanbertolini/Projects/agent-ruby/packages/forest_admin_datasource_active_record
   specs:
-    forest_admin_datasource_active_record (1.8.3)
+    forest_admin_datasource_active_record (1.8.6)
       activerecord (>= 6.1)
       activesupport (>= 6.1)
       zeitwerk (~> 2.3)
@@ -28,7 +28,7 @@ PATH
 PATH
   remote: /Users/albanbertolini/Projects/agent-ruby/packages/forest_admin_datasource_customizer
   specs:
-    forest_admin_datasource_customizer (1.8.3)
+    forest_admin_datasource_customizer (1.8.6)
       activesupport (>= 6.1)
       marcel (~> 1.0, >= 1.0.4)
       zeitwerk (~> 2.3)
@@ -36,7 +36,7 @@ PATH
 PATH
   remote: /Users/albanbertolini/Projects/agent-ruby/packages/forest_admin_datasource_mongoid
   specs:
-    forest_admin_datasource_mongoid (1.8.3)
+    forest_admin_datasource_mongoid (1.8.6)
       activesupport (>= 6.1)
       mongoid (>= 9.0)
       zeitwerk (~> 2.3)
@@ -44,14 +44,14 @@ PATH
 PATH
   remote: /Users/albanbertolini/Projects/agent-ruby/packages/forest_admin_datasource_toolkit
   specs:
-    forest_admin_datasource_toolkit (1.8.3)
+    forest_admin_datasource_toolkit (1.8.6)
       activesupport (>= 6.1)
       zeitwerk (~> 2.3)
 
 PATH
   remote: /Users/albanbertolini/Projects/agent-ruby/packages/forest_admin_rails
   specs:
-    forest_admin_rails (1.8.3)
+    forest_admin_rails (1.8.6)
       dry-configurable (~> 1.1)
       rails (>= 6.1)
       zeitwerk (~> 2.3)
