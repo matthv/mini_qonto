@@ -1,4 +1,4 @@
-# TODO 007: Skip Schema Update - Implementation Guide
+# Done 007: Skip Schema Update - Implementation Guide
 ## Medium Priority (P2) - Forest Admin Agent Ruby
 
 **Project:** mini_qonto

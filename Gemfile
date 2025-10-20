@@ -51,12 +51,12 @@ gem 'concurrent-ruby', '1.3.4'
 gem 'pg'
 gem 'pry'
 
-gem 'forest_admin_rails', path: '/Users/albanbertolini/Projects/agent-ruby/packages/forest_admin_rails'
-gem 'forest_admin_agent', path: '/Users/albanbertolini/Projects/agent-ruby/packages/forest_admin_agent'
-gem 'forest_admin_datasource_toolkit', path: '/Users/albanbertolini/Projects/agent-ruby/packages/forest_admin_datasource_toolkit'
-gem 'forest_admin_datasource_active_record', path: '/Users/albanbertolini/Projects/agent-ruby/packages/forest_admin_datasource_active_record'
-gem 'forest_admin_datasource_customizer', path: '/Users/albanbertolini/Projects/agent-ruby/packages/forest_admin_datasource_customizer'
-gem 'forest_admin_datasource_mongoid', path: '/Users/albanbertolini/Projects/agent-ruby/packages/forest_admin_datasource_mongoid'
+gem 'forest_admin_rails'
+gem 'forest_admin_agent'
+gem 'forest_admin_datasource_toolkit'
+gem 'forest_admin_datasource_active_record'
+gem 'forest_admin_datasource_customizer'
+gem 'forest_admin_datasource_mongoid'
 
 
 
