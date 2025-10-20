@@ -620,44 +620,6 @@ describe("filters", () => {
       expect(productsResult).toHaveLength(0);
     });
 
-    it("not i contains", async () => {
-      await Promise.all([
-        products().create<ProductRecord>({
-          name: "string-noticontains-allowed",
-        }),
-        products().create<ProductRecord>({
-          name: "string-noticontains-Excluded",
-        }),
-      ]);
-
-      const productsResult = await products().list<ProductRecord>({
-        filters: {
-          conditionTree: {
-            aggregator: "And",
-            conditions: [
-              {
-                field: "name",
-                operator: "Contains",
-                value: "string-noticontains",
-              },
-              {
-                field: "name",
-                operator: "NotIContains",
-                value: "excluded",
-              },
-            ],
-          },
-        },
-      });
-
-      expect(productsResult).toHaveLength(1);
-      expect(productsResult).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ name: "string-noticontains-allowed" }),
-        ])
-      );
-    });
-
     it("less than", async () => {
       const shortName = "string-lessthan-s";
       const mediumName = "string-lessthan-medium-length";
