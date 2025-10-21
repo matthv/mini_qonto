@@ -84,6 +84,7 @@ describe("crud", () => {
     expect(lines[0]).toContain("name,id");
     expect(lines[1]).toContain("Test Organization 1");
     expect(lines[2]).toContain("Test Organization 2");
-    expect(lines[3]).toEqual("");
+    expect(lines[10]).toContain("Test Organization 10");
+    expect(lines[11]).toEqual("");
   });
 });
