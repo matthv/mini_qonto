@@ -1352,7 +1352,7 @@ The Ruby agent implementation has achieved impressive feature parity with the No
 
 1. **CSV Streaming (P0)** - Critical for production use with large datasets
 2. **Update Field Endpoint (P1)** - Required for full CRUD parity
-3. ~~**Webhook Actions (P1)** - Expanding action capabilities~~ Not a priority
+3. **Webhook Actions (P1)** - Expanding action capabilities Not a priority
 4. **File Actions (P1)** - Complete action result types
 
 ### Recommended Timeline:
