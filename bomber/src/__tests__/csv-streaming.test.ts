@@ -389,7 +389,7 @@ describe("CSV Streaming Export - Acceptance Criteria", () => {
 
     describe("AC6: All data types formatted correctly", () => {
       it("should format null values as empty strings", async () => {
-        await organizations().create<OrganizationRecord>({
+        const org = await organizations().create<OrganizationRecord>({
           name: null,
         });
 
@@ -404,7 +404,7 @@ describe("CSV Streaming Export - Acceptance Criteria", () => {
         const lines = csvContent.split("\n");
 
         // Null should appear as empty field (can be quoted "" or unquoted)
-        expect(lines[1]).toEqual('"",');
+        expect(lines[1]).toEqual(`"",${org.id}`);
 
         // Cleanup
         fs.unlinkSync(csvFilePath);
