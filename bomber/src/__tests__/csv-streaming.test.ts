@@ -6,9 +6,8 @@
  *
  * Test Categories:
  * 1. Functional Tests - Core streaming behavior
- * 2. Performance Tests - Memory usage and response time
- * 3. Edge Cases - Special characters, large datasets, data types
- * 4. Integration Tests - Filters, segments, relationships
+ * 2. Edge Cases - Special characters, large datasets, data types
+ * 3. Integration Tests - Filters, segments, relationships
  */
 
 import { mountAgentClient } from "../agent-setup";
