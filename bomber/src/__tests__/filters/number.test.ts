@@ -23,19 +23,25 @@ describe("filters", () => {
   const bankAccounts = () => clientAgent.collection(BANK_ACCOUNT_COLLECTION);
   const organizations = () => clientAgent.collection(ORGANIZATION_COLLECTION);
 
+  const setup = async () => {
+    const orga = await organizations().create({
+      name: "Test Organization",
+    });
+    const bank = await bankAccounts().create({
+      iban: "DE89370400440532013000",
+      organization_id: orga.id,
+    });
+
+    return {orga, bank}
+  }
+
   beforeEach(async () => {
     await clearCollections(clientAgent);
   });
 
   describe("type number", () => {
     it("equal", async () => {
-      const orga = await organizations().create({
-        name: "Test Organization",
-      });
-      const bank = await bankAccounts().create({
-        iban: "DE89370400440532013000",
-        organization_id: orga.id,
-      });
+      const {bank} = await setup();
 
       await incomes().create<IncomeRecord>({
         amount: 1500,
@@ -63,13 +69,7 @@ describe("filters", () => {
     });
 
     it("not equal", async () => {
-      const orga = await organizations().create({
-        name: "Test Organization",
-      });
-      const bank = await bankAccounts().create({
-        iban: "DE89370400440532013000",
-        organization_id: orga.id,
-      });
+      const {bank} = await setup();
 
       const [first, _] = await Promise.all([
         incomes().create<IncomeRecord>({
@@ -99,13 +99,7 @@ describe("filters", () => {
     });
 
     it("less than", async () => {
-      const orga = await organizations().create({
-        name: "Test Organization",
-      });
-      const bank = await bankAccounts().create({
-        iban: "DE89370400440532013000",
-        organization_id: orga.id,
-      });
+      const {bank} = await setup();
 
       const records = await Promise.all([
         incomes().create<IncomeRecord>({
@@ -144,13 +138,7 @@ describe("filters", () => {
     });
 
     it("less than or equal", async () => {
-      const orga = await organizations().create({
-        name: "Test Organization",
-      });
-      const bank = await bankAccounts().create({
-        iban: "DE89370400440532013000",
-        organization_id: orga.id,
-      });
+      const {bank} = await setup();
 
       const records = await Promise.all([
         incomes().create<IncomeRecord>({
@@ -192,10 +180,12 @@ describe("filters", () => {
     });
 
     it("greater than", async () => {
+      const {bank} = await setup();
+
       const records = await Promise.all([
-        incomes().create<IncomeRecord>({ amount: 400 }),
-        incomes().create<IncomeRecord>({ amount: 500 }),
-        incomes().create<IncomeRecord>({ amount: 600 }),
+        incomes().create<IncomeRecord>({ amount: 400, bank_account_id: bank.id }),
+        incomes().create<IncomeRecord>({ amount: 500, bank_account_id: bank.id }),
+        incomes().create<IncomeRecord>({ amount: 600, bank_account_id: bank.id }),
       ]);
 
       const sorted = [...records].sort(
@@ -220,13 +210,7 @@ describe("filters", () => {
     });
 
     it("greater than or equal", async () => {
-      const orga = await organizations().create({
-        name: "Test Organization",
-      });
-      const bank = await bankAccounts().create({
-        iban: "DE89370400440532013000",
-        organization_id: orga.id,
-      });
+      const {bank} = await setup();
 
       const records = await Promise.all([
         incomes().create<IncomeRecord>({
@@ -268,13 +252,7 @@ describe("filters", () => {
     });
 
     it("in", async () => {
-      const orga = await organizations().create({
-        name: "Test Organization",
-      });
-      const bank = await bankAccounts().create({
-        iban: "DE89370400440532013000",
-        organization_id: orga.id,
-      });
+      const {bank} = await setup();
 
       const records = await Promise.all([
         incomes().create<IncomeRecord>({
@@ -314,13 +292,7 @@ describe("filters", () => {
     });
 
     it("not in", async () => {
-      const orga = await organizations().create({
-        name: "Test Organization",
-      });
-      const bank = await bankAccounts().create({
-        iban: "DE89370400440532013000",
-        organization_id: orga.id,
-      });
+      const {bank} = await setup();
 
       const records = await Promise.all([
         incomes().create<IncomeRecord>({
@@ -365,13 +337,7 @@ describe("filters", () => {
     });
 
     it("present", async () => {
-      const orga = await organizations().create({
-        name: "Test Organization",
-      });
-      const bank = await bankAccounts().create({
-        iban: "DE89370400440532013000",
-        organization_id: orga.id,
-      });
+      const {bank} = await setup();
 
       await incomes().create<IncomeRecord>({
         amount: 10,
@@ -398,13 +364,7 @@ describe("filters", () => {
     });
 
     it("missing", async () => {
-      const orga = await organizations().create({
-        name: "Test Organization",
-      });
-      const bank = await bankAccounts().create({
-        iban: "DE89370400440532013000",
-        organization_id: orga.id,
-      });
+      const {bank} = await setup();
 
       await Promise.all([
         incomes().create<IncomeRecord>({
@@ -433,13 +393,7 @@ describe("filters", () => {
     });
 
     it("blank", async () => {
-      const orga = await organizations().create({
-        name: "Test Organization",
-      });
-      const bank = await bankAccounts().create({
-        iban: "DE89370400440532013000",
-        organization_id: orga.id,
-      });
+      const {bank} = await setup();
 
       await Promise.all([
         incomes().create<IncomeRecord>({

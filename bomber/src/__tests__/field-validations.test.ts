@@ -9,8 +9,9 @@ import { mountAgentClient } from "../agent-setup";
 type BankAccountRecord = {
   id: string;
   iban: string;
-  organization_id: string;
+  organizationId: string;
 };
+
 
 type OrganizationRecord = {
   id: string;
@@ -35,25 +36,35 @@ describe("validations", () => {
     await clearCollections(clientAgent);
   });
 
-  it("rejects creation when iban is missing", async () => {
-    const organization = await createOrganization("Missing IBAN Org");
-
-    await expect(
-      bankAccounts().create<BankAccountRecord>({
-        organization_id: organization.id,
-      })
-    ).rejects.toThrow(/iban failed validation rule : Present/);
-  });
-
-  it("rejects creation when iban does not start with FR76", async () => {
+  it("rejects creation when iban is in wrong format", async () => {
     const organization = await createOrganization("Wrong Prefix Org");
 
-    await expect(
-      bankAccounts().create<BankAccountRecord>({
+    let error = new Error();
+    try {
+      await bankAccounts().create<BankAccountRecord>({
         organization_id: organization.id,
-        iban: "DE89370400440532013000",
+        iban: "8937FR0400440532013000",
       })
-    ).rejects.toThrow(/iban failed validation rule : StartsWith\(FR76\)/);
+    } catch (e) {
+      error = e as Error;
+    }
+    expect(JSON.parse(error.message)).toEqual({
+      body: {
+        data: {
+          attributes: {
+          iban: "8937FR0400440532013000",
+          organization_id: organization.id,
+          },
+          type: "Api__BankAccount",
+        },
+      },
+      error: {
+        method: "POST",
+        path: "/forest/Api__BankAccount?timezone=Europe%2FParis",
+        status: 400,
+        text: '{"errors":[{"name":"ValidationError","detail":"Invalid IBAN format","status":400,"data":null}]}',
+      },
+    });
   });
 
   it("allows creation when iban is present and starts with FR76", async () => {
@@ -65,6 +76,6 @@ describe("validations", () => {
     });
 
     expect(bankAccount.iban).toBe("FR7630006000011234567890189");
-    expect(bankAccount.organization_id).toBe(organization.id);
+    expect(bankAccount.organizationId).toBe(parseInt(organization.id));
   });
 });

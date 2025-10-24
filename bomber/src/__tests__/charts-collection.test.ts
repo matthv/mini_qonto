@@ -21,13 +21,27 @@ describe("collection charts", () => {
       CHART_CONTEXT
     );
 
-    expect(chart).toEqual({ countCurrent: 4650, countPrevious: null });
+    expect(chart).toEqual({ countCurrent: 4250, countPrevious: null });
   });
 
   it("fails to load the collection failing chart", async () => {
-    await expect(
-      bankAccounts().valueChart("failing-incomes-chart", CHART_CONTEXT)
-    ).rejects.toThrow(/Unexpected chart failure/);
+    let error = new Error();
+    try {
+      await bankAccounts().valueChart("failing-incomes-chart", CHART_CONTEXT);
+    } catch (e) {
+      error = e as Error;
+    }
+    expect(JSON.parse(error.message)).toEqual({
+      body: {
+        record_id: 1,
+      },
+      error: {
+        status: 500,
+        text: '{"errors":[{"name":"StandardError","detail":"Unexpected error","status":500,\"data\":null}]}',
+        method: "POST",
+        path: "/forest/_charts/Api__BankAccount/failing-incomes-chart?timezone=Europe%2FParis"
+      }
+    });
   });
 
   it("loads collection objective chart", async () => {

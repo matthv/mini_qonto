@@ -81,14 +81,14 @@ describe("action > execute", () => {
 
     const result = await action.execute();
 
-    expect(result.success).toBe("Bank account 9 updated.");
+    expect(result.success).toBe(`Bank account ${account.id} updated.`);
 
     const errorMessage = result.html;
     expect(errorMessage).toBe(
     `<div>
-  <p>Bank account 9 updated.</p>
+  <p>Bank account ${account.id} updated.</p>
   <ul>
-    <li><strong>Existing record details:</strong> id=9, iban=FR12345678901234567890123, organization_id=${org.id}</li>
+    <li><strong>Existing record details:</strong> id=${account.id}, iban=FR12345678901234567890123, organization_id=${org.id}</li>
     <li><strong>New IBAN:</strong> FR76 2343 2532 5324 2342 3423 4</li>
     <li><strong>Collection:</strong> Api__BankAccount</li>
     <li><strong>Native driver:</strong> ActiveRecord::ConnectionAdapters::PostgreSQLAdapter</li>

@@ -1,4 +1,5 @@
 import { mountAgentClient } from "../agent-setup";
+import { clearCollections } from "./helpers";
 
 type AgentClient = Awaited<ReturnType<typeof mountAgentClient>>;
 
@@ -32,9 +33,20 @@ describe("charts", () => {
   });
 
   it("fails to load the failing chart", async () => {
-    await expect(
-      clientAgent.valueChart("failing-incomes-chart")
-    ).rejects.toThrow(/Unexpected chart failure/);
+    let error: Error = new Error();
+    try {
+    await clientAgent.valueChart("failing-incomes-chart");
+    } catch(e) {
+      error = e as Error;
+    }
+    expect(JSON.parse(error.message)).toEqual({
+      error: {
+        status: 500,
+        text: '{"errors":[{"name":"StandardError","detail":"Unexpected error","status":500,\"data\":null}]}',
+        method: "POST",
+        path: "/forest/_charts/failing-incomes-chart?timezone=Europe%2FParis"
+      }
+    });
   });
 
   it("loads distribution chart", async () => {

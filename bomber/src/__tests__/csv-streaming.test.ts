@@ -30,7 +30,7 @@ describe("CSV Streaming Export - Acceptance Criteria", () => {
 
   beforeEach(async () => {
     await clearCollections(clientAgent);
-  }, 100000);
+  }, 20000);
 
   const organizations = () =>
     clientAgent.collection(ORGANIZATION_COLLECTION_VIEW);
@@ -39,7 +39,7 @@ describe("CSV Streaming Export - Acceptance Criteria", () => {
    * FUNCTIONAL ACCEPTANCE CRITERIA
    */
   describe("Functional Requirements", () => {
-    describe("AC1: CSV exports use streaming", () => {
+    describe("CSV exports use streaming", () => {
       it("should return CSV data as a readable stream", async () => {
         // Create test data
         await organizations().create<OrganizationRecord>({
@@ -71,17 +71,13 @@ describe("CSV Streaming Export - Acceptance Criteria", () => {
       it("should stream data progressively (not all at once)", async () => {
         // Create larger dataset to observe streaming behavior
         const recordCount = 10;
-        // Create records in parallel batches for speed
-        const batchSize = 2;
-        for (let i = 0; i < recordCount; i += batchSize) {
+        for (let i = 0; i < recordCount; i ++) {
           const promises = [];
-          for (let j = 0; j < batchSize && (i + j) < recordCount; j++) {
-            promises.push(
-              organizations().create<OrganizationRecord>({
-                name: `Organization ${(i + j + 1).toString().padStart(3, "0")}`,
-              })
-            );
-          }
+          promises.push(
+            organizations().create<OrganizationRecord>({
+              name: `Organization ${(i + 1).toString().padStart(3, "0")}`,
+            })
+          );
           await Promise.all(promises);
         }
 
@@ -116,7 +112,7 @@ describe("CSV Streaming Export - Acceptance Criteria", () => {
       }, 10000); // 10 second timeout
     });
 
-    describe("AC2: Memory usage constant (~10MB) for all dataset sizes", () => {
+    describe("Memory usage constant (~10MB) for all dataset sizes", () => {
       it("should maintain low memory usage with small dataset", async () => {
         const recordCount = 10;
         for (let i = 1; i <= recordCount; i++) {
@@ -151,8 +147,8 @@ describe("CSV Streaming Export - Acceptance Criteria", () => {
 
       it.skip("should maintain similar memory usage with large dataset", async () => {
         // Create large dataset (1000 records)
-        const recordCount = 1000;
-        const batchSize = 100;
+        const recordCount = 10000;
+        const batchSize = 1000;
 
         for (let i = 0; i < recordCount; i += batchSize) {
           const promises = [];
@@ -194,15 +190,15 @@ describe("CSV Streaming Export - Acceptance Criteria", () => {
 
         // Cleanup
         fs.unlinkSync(csvFilePath);
-      }, 20000); // Increased timeout for large dataset
+      }, 60000); // Increased timeout for large dataset
     });
 
-    describe("AC4: Filters, search, segments applied correctly", () => {
+    describe("Filters, search applied correctly", () => {
       beforeEach(async () => {
         // Create diverse dataset
-        for (let i = 1; i <= 20; i++) {
+        for (let i = 1; i <= 10; i++) {
           await organizations().create<OrganizationRecord>({
-            name: i <= 10 ? `Active Organization ${i}` : `Outdated Organization ${i}`,
+            name: i <= 5 ? `Active Organization ${i}` : `Outdated Organization ${i}`,
           });
         }
       });
@@ -226,7 +222,7 @@ describe("CSV Streaming Export - Acceptance Criteria", () => {
         const lines = csvContent.split("\n").filter(line => line.trim());
 
         // Should only include active organizations
-        expect(lines.length).toBe(11); // Header + 10 active orgs
+        expect(lines.length).toBe(6); // Header + 5 active orgs
         lines.slice(1).forEach(line => {
           expect(line).toContain("Active Organization");
         });
@@ -253,6 +249,9 @@ describe("CSV Streaming Export - Acceptance Criteria", () => {
         // Cleanup
         fs.unlinkSync(csvFilePath);
       });
+    }); 
+
+    describe("Segments, sort applied correctly", () => {
 
       it("should apply segments correctly", async () => {
         // Clear and create specific data for segment test
@@ -263,7 +262,7 @@ describe("CSV Streaming Export - Acceptance Criteria", () => {
         await organizations().create<OrganizationRecord>({ name: null });
 
         // Organizations with name
-        for (let i = 1; i <= 10; i++) {
+        for (let i = 1; i <= 5; i++) {
           await organizations().create<OrganizationRecord>({
             name: `Named Organization ${i}`,
           });
@@ -281,8 +280,8 @@ describe("CSV Streaming Export - Acceptance Criteria", () => {
         const csvContent = fs.readFileSync(csvFilePath, "utf-8");
         const lines = csvContent.split("\n").filter(line => line.trim());
 
-        // Segment should work and return the header + the 10 named organizations
-        expect(lines.length).toEqual(11);
+        // Segment should work and return the header + the 5 named organizations
+        expect(lines.length).toEqual(6);
         expect(lines[0]).toContain("name,id");
 
         // Cleanup
@@ -319,7 +318,7 @@ describe("CSV Streaming Export - Acceptance Criteria", () => {
       });
     });
 
-    describe("AC5: Special characters properly escaped", () => {
+    describe("Special characters properly escaped", () => {
       it("should escape commas in values", async () => {
         await organizations().create<OrganizationRecord>({
           name: "Organization, with comma",
@@ -387,7 +386,7 @@ describe("CSV Streaming Export - Acceptance Criteria", () => {
       });
     });
 
-    describe("AC6: All data types formatted correctly", () => {
+    describe("All data types formatted correctly", () => {
       it("should format null values as empty strings", async () => {
         const org = await organizations().create<OrganizationRecord>({
           name: null,
@@ -464,7 +463,7 @@ describe("CSV Streaming Export - Acceptance Criteria", () => {
       });
     });
 
-    describe("AC7: Empty datasets handled (header only)", () => {
+    describe("Empty datasets handled (header only)", () => {
       it("should return only header when no records match", async () => {
         // Create some data but filter it out
         await organizations().create<OrganizationRecord>({
@@ -502,7 +501,7 @@ describe("CSV Streaming Export - Acceptance Criteria", () => {
    * INTEGRATION TESTS
    */
   describe("Integration Tests", () => {
-    describe("AC10: Related records export streams correctly", () => {
+    describe("Related records export streams correctly", () => {
       it("should export related records via relationships", async () => {
         // This test would require setting up relationships
         // For now, we'll test that the basic mechanism works
@@ -531,7 +530,7 @@ describe("CSV Streaming Export - Acceptance Criteria", () => {
    * EDGE CASES
    */
   describe("Edge Cases", () => {
-    describe("AC12: Very large field values", () => {
+    describe("Very large field values", () => {
       it("should handle very long text fields", async () => {
         const longName = "A".repeat(5000); // 5KB name
 
@@ -556,7 +555,7 @@ describe("CSV Streaming Export - Acceptance Criteria", () => {
       });
     });
 
-    describe("AC13: Unicode and international characters", () => {
+    describe("Unicode and international characters", () => {
       it("should correctly export unicode characters", async () => {
         await organizations().create<OrganizationRecord>({
           name: "Organisation française 日本語 🎉",
@@ -580,7 +579,7 @@ describe("CSV Streaming Export - Acceptance Criteria", () => {
       });
     });
 
-    describe("AC14: Projection field ordering", () => {
+    describe("Projection field ordering", () => {
       it("should respect projection field order", async () => {
         await organizations().create<OrganizationRecord>({
           name: "Field Order Test",

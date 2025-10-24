@@ -1,7 +1,8 @@
 import { createForestAgentClient } from "@forestadmin-experimental/agent-nodejs-testing";
 import dotenv from "dotenv";
 
-dotenv.config();
+dotenv.config({ quiet: true });
+
 
 export const AGENT_PORT = process.env.AGENT_PORT as unknown as number || 3000;
 export const SERVER_SANDBOX_PORT = process.env.SERVER_SANDBOX_PORT as unknown as number || 3311;
