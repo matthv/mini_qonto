@@ -113,4 +113,42 @@ describe("action > approvals", () => {
       path: "/forest/_actions/Api__BankAccount/0/update-iban?timezone=Europe%2FParis"
     });
   });
+
+
+  it('should return 403 when validating the approval without having the permission to approve', async () => {
+    const accounts = clientAgent.collection(BANK_ACCOUNTS_COLLECTION);
+    const organizations = clientAgent.collection(ORGANIZATION_COLLECTION);
+
+    const org = await organizations.create<OrganizationRecord>({ name: "Test Org" });
+    const account = await accounts.create({
+      iban: "FR7612345678901234567890123",
+      organization_id: org.id
+    });
+
+    const action = await accounts.action("Update IBAN", {
+      recordId: account.id
+    });
+
+    const newIban = await action.getFieldString("newIban");
+    await newIban.fill("FR764325325324234234234");
+
+    await clientAgent.overrideActionPermission(BANK_ACCOUNTS_COLLECTION, "Update IBAN", {
+      approvalRequired: true,
+      userApprovalEnabled: true,
+      selfApprovalEnabled: false
+    });
+
+    let error: Error = new Error();
+    try {
+      await action.execute(true)
+    } catch(e) {
+      error = e as Error;
+    }
+    expect(JSON.parse(error.message).error).toEqual({
+      status: 403,
+      text: "{\"errors\":[{\"name\":\"CustomActionTriggerForbiddenError\",\"detail\":\"You don't have the permission to trigger this action.\",\"status\":403}]}",
+      method: "POST",
+      path: "/forest/_actions/Api__BankAccount/0/update-iban?timezone=Europe%2FParis"
+    });
+  });
 });
