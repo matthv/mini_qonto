@@ -62,7 +62,7 @@ describe("validations", () => {
         method: "POST",
         path: "/forest/Api__BankAccount?timezone=Europe%2FParis",
         status: 400,
-        text: '{"errors":[{"name":"ValidationError","detail":"Invalid IBAN format","status":400,"data":null}]}',
+        text: '{"errors":[{"name":"ValidationError","detail":"Invalid IBAN format","status":400}]}',
       },
     });
   });

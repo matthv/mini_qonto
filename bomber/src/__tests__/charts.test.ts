@@ -42,7 +42,7 @@ describe("charts", () => {
     expect(JSON.parse(error.message)).toEqual({
       error: {
         status: 500,
-        text: '{"errors":[{"name":"StandardError","detail":"Unexpected error","status":500,\"data\":null}]}',
+        text: '{"errors":[{"name":"StandardError","detail":"Unexpected error","status":500}]}',
         method: "POST",
         path: "/forest/_charts/failing-incomes-chart?timezone=Europe%2FParis"
       }
