@@ -8,23 +8,14 @@
 module ForestAdminRpcAgent
   class CreateRpcAgent
     def self.setup!
-      # Get the agent instance
-      @agent = ForestAdminRpcAgent::Agent.instance
+      datasource = ForestAdminDatasourceActiveRecord::Datasource.new(
+        Rails.env.to_sym,
+        support_polymorphic_relations: true,
+      )
 
-      # Add your datasources here
-      # Example:
-      # datasource = ForestAdminDatasourceActiveRecord::Datasource.new
-      # @agent.add_datasource(datasource)
+      @agent = ForestAdminRpcAgent::Agent.instance.add_datasource(datasource)
 
-      # Customize your collections (optional)
-      # Example:
-      # @agent.customize_collection('users') do |collection|
-      #   collection.add_field('full_name', column_type: 'String') do |context|
-      #     "#{context.record['first_name']} #{context.record['last_name']}"
-      #   end
-      # end
 
-      # Build the agent (required)
       @agent.build
     end
   end
