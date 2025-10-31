@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_10_24_094554) do
+ActiveRecord::Schema[7.0].define(version: 2025_10_28_103914) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -45,6 +45,8 @@ ActiveRecord::Schema[7.0].define(version: 2025_10_24_094554) do
     t.string "email", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "tags", default: [], array: true
+    t.jsonb "metadata", default: [], array: true
     t.index ["email"], name: "index_emails_on_email", unique: true
   end
 
