@@ -39,4 +39,6 @@ export const clearCollections = async (clientAgent: AgentClient) => {
   if (allProducts.length > 0) {
     await products.delete(allProducts.map((product) => String(product.id)));
   }
+
+  await clientAgent.clearPermissionOverride();
 };

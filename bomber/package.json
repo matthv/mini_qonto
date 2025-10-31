@@ -6,8 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc --project tsconfig.json",
-    "sandbox": "node dist/sandbox-server.js",
-    "presandbox": "docker compose up -d && yarn build",
+    "sandbox": "yarn && docker compose up -d && yarn build && node dist/sandbox-server.js",
     "test": "jest --runInBand"
   },
   "dependencies": {
