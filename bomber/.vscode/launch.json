@@ -1,0 +1,12 @@
+{
+  "type": "node",
+  "request": "launch",
+  "name": "Jest (SDK, PnP)",
+  "runtimeExecutable": "node",
+  "runtimeArgs": ["-r", "${workspaceFolder}/.pnp.cjs"],
+  "program": "${workspaceFolder}/.yarn/sdks/jest/bin/jest.js",
+  "args": ["--config", "${workspaceFolder}/jest.config.js", "--runInBand"],
+  "cwd": "${workspaceFolder}",
+  "console": "integratedTerminal",
+  "autoAttachChildProcesses": true
+}

@@ -1,0 +1,41 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea
+.vscode
+
+# Documentation
+README.md
+*.md
+
+# Logs
+log/*
+tmp/*
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files (will be passed via docker-compose)
+.env
+.env.*
+
+# Test files
+test/
+spec/
+
+# Coverage
+coverage/
+
+# Node modules (if any)
+node_modules/
+
+# Bundle cache
+vendor/bundle
+
+# Storage
+storage/*

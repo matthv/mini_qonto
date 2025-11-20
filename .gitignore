@@ -39,3 +39,13 @@
 .forestadmin-schema.json
 .env*
 !.env.example
+
+bomber/dist
+bomber/.pnp.cjs
+bomber/.pnp.loader.mjs
+
+!bomber/.yarn/releases
+bomber/.yarn/unplugged
+bomber/.yarn/install-state.gz
+bomber/.yarn/sdks
+bomber/node_modules

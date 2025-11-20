@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    command: bash -c "rm -f tmp/pids/server.pid && bundle && bundle exec rails db:create db:migrate && bundle exec rails server -b 0.0.0.0"
+    env_file:
+      - ./.env
+    volumes:
+      - .:/app
+      # Mount local forest_admin gems for development
+      # Adjust paths as needed
+      # - /Users/matthieuvideaud/Sites/agents/in-app/agent-ruby/packages/forest_admin_rails:/forest_admin_gems/forest_admin_rails
+      # - /Users/matthieuvideaud/Sites/agents/in-app/agent-ruby/packages/forest_admin_agent:/forest_admin_gems/forest_admin_agent
+      # - /Users/matthieuvideaud/Sites/agents/in-app/agent-ruby/packages/forest_admin_datasource_toolkit:/forest_admin_gems/forest_admin_datasource_toolkit
+      # - /Users/matthieuvideaud/Sites/agents/in-app/agent-ruby/packages/forest_admin_datasource_active_record:/forest_admin_gems/forest_admin_datasource_active_record
+      # - /Users/matthieuvideaud/Sites/agents/in-app/agent-ruby/packages/forest_admin_datasource_customizer:/forest_admin_gems/forest_admin_datasource_customizer
+      # - /Users/matthieuvideaud/Sites/agents/in-app/agent-ruby/packages/forest_admin_datasource_mongoid:/forest_admin_gems/forest_admin_datasource_mongoid
+      - bundle_cache:/usr/local/bundle
+    ports:
+      - "3002:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      RAILS_ENV: ${RAILS_ENV:-development}
+      RAILS_MAX_THREADS: ${RAILS_MAX_THREADS:-5}
+    stdin_open: true
+    tty: true
+    extra_hosts:
+    - "api.development.forestadmin.com:host-gateway"
+    - "host.docker.internal:host-gateway"
+
+volumes:
+  postgres_data:
+  bundle_cache:
