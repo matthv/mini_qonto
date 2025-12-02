@@ -2,7 +2,7 @@ module Api
   class ApplicationRecord < ActiveRecord::Base
     self.abstract_class = true
 
-    connects_to database: {writing: :api, reading: :api}
+    connects_to database: {writing: :api}
 
     # Forest v9 has an issue when handling polymorphic associations where it misses the namespace
     # due to how it is stored in the database in the original service

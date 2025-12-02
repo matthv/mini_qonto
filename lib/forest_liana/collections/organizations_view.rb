@@ -3,10 +3,30 @@ class Forest::OrganizationsView
 
   collection :Api__OrganizationsView
 
-  belongs_to :referrer_organization, reference: "Api__OrganizationsView.id" do
-    # referral = object.referrer_referral
-    # next if referral.nil? || referral.referrer.nil?
+  has_many :claims, reference: "CardClaim__Claim.organization_id", is_filterable: true
 
-    Api::OrganizationsView.find(object.id)
+  search_fields %w[
+    id
+    name
+    legal_name
+    legal_number
+    contact_email
+    slug
+  ]
+
+  field :is_italian, type: "Boolean" do
+    object.italian?
+  end
+
+  field :is_french, type: "Boolean" do
+    object.french?
+  end
+
+  field :is_german, type: "Boolean" do
+    object.german?
+  end
+
+  field :is_spanish, type: "Boolean" do
+    object.spanish?
   end
 end
