@@ -1,0 +1,21 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-3100}:3100"
+    environment:
+      RAILS_ENV: ${RAILS_ENV:-development}
+      DATABASE_HOST: ${DATABASE_HOST:?DATABASE_HOST is required}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_USER: ${DATABASE_USER:?DATABASE_USER is required}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?DATABASE_PASSWORD is required}
+      DATABASE_NAME: ${DATABASE_NAME:-qonto_swarm_development}
+      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY:-}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:-}
+      FOREST_ENV_SECRET: ${FOREST_ENV_SECRET:-}
+      FOREST_AUTH_SECRET: ${FOREST_AUTH_SECRET:-}
+      RAILS_LOG_TO_STDOUT: "true"
+    stdin_open: true
+    tty: true

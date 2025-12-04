@@ -1,2 +1,3 @@
-ForestLiana.env_secret = Rails.application.secrets.forest_env_secret
-ForestLiana.auth_secret = Rails.application.secrets.forest_auth_secret
+ForestLiana.env_secret = '22dce805b70cff8d440c5a2b6ab927af6fc7f8087f713cb42c510da7a23a27ef'
+ForestLiana.auth_secret = '083f924631d91358a52098158ff3890574922f4749dddbbb'
+ForestLiana.skip_schema_update = true

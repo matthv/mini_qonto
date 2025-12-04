@@ -1,0 +1,18 @@
+# Development overrides - automatically loaded with docker-compose.yml
+# This file enables live code reloading and development conveniences
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - .:/rails
+      - bundle_cache:/usr/local/bundle
+    environment:
+      RAILS_ENV: development
+      BINDING: 0.0.0.0
+    command: ["./bin/rails", "server", "-b", "0.0.0.0", "-p", "3100"]
+
+volumes:
+  bundle_cache:

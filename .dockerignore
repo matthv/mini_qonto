@@ -1,0 +1,57 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Logs
+log/*
+tmp/*
+
+# Test files
+test/
+spec/
+coverage/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile*
+docker-compose*
+.docker/
+
+# Documentation
+README.md
+CHANGELOG.md
+LICENSE
+
+# Environment files (should be provided at runtime)
+.env
+.env.*
+!.env.example
+
+# Storage and cache
+storage/*
+!storage/.keep
+tmp/cache/
+tmp/pids/
+tmp/sockets/
+
+# Node modules (if any)
+node_modules/
+
+# Bundler
+.bundle/
+vendor/bundle/
