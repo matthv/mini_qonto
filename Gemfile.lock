@@ -1,8 +1,9 @@
 PATH
   remote: /Users/matthieuvideaud/Sites/agents/in-app/forest-rails
   specs:
-    forest_liana (9.15.7)
+    forest_liana (9.22.0)
       bcrypt
+      csv
       deepsort
       forestadmin-jsonapi-serializers (>= 0.14.0)
       groupdate (>= 5.0.0)
@@ -12,6 +13,7 @@ PATH
       json-jwt (>= 1.16.0)
       jwt
       openid_connect (= 1.4.2)
+      ostruct
       rack-cors
       rails (>= 6.1.7.9)
       useragent
@@ -90,6 +92,7 @@ GEM
     attr_required (1.0.2)
     base64 (0.3.0)
     bcrypt (3.1.20)
+    benchmark (0.5.0)
     bigdecimal (3.2.2)
     bindata (2.5.1)
     bindex (0.8.1)
@@ -114,13 +117,14 @@ GEM
       reline (>= 0.3.8)
     deepsort (0.5.0)
     dotenv (3.1.8)
+    drb (2.2.3)
     erb (5.0.2)
     erubi (1.13.1)
     faraday (2.13.4)
       faraday-net_http (>= 2.0, < 3.5)
       json
       logger
-    faraday-follow_redirects (0.3.0)
+    faraday-follow_redirects (0.5.0)
       faraday (>= 1, < 3)
     faraday-net_http (3.4.1)
       net-http (>= 0.5.0)
@@ -174,7 +178,10 @@ GEM
     matrix (0.4.3)
     method_source (1.1.0)
     mini_mime (1.1.5)
-    minitest (5.25.5)
+    mini_portile2 (2.8.9)
+    minitest (6.0.6)
+      drb (~> 2.0)
+      prism (~> 1.5)
     msgpack (1.8.0)
     multi_xml (0.7.2)
       bigdecimal (~> 3.1)
@@ -191,6 +198,9 @@ GEM
     net-smtp (0.5.1)
       net-protocol
     nio4r (2.7.4)
+    nokogiri (1.18.9)
+      mini_portile2 (~> 2.8.2)
+      racc (~> 1.4)
     nokogiri (1.18.9-aarch64-linux-gnu)
       racc (~> 1.4)
     nokogiri (1.18.9-aarch64-linux-musl)
@@ -218,10 +228,12 @@ GEM
       validate_email
       validate_url
       webfinger (~> 1.2)
+    ostruct (0.6.3)
     pg (1.5.9)
     pp (0.6.2)
       prettyprint
     prettyprint (0.2.0)
+    prism (1.9.0)
     psych (5.2.6)
       date
       stringio
@@ -346,14 +358,21 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  base64
+  benchmark
+  bigdecimal
   bootsnap
   capybara
   concurrent-ruby (= 1.3.4)
   debug
   dotenv
+  drb
   forest_liana!
   importmap-rails
   jbuilder
+  logger
+  mutex_m
+  ostruct
   pg
   puma (~> 5.0)
   rails (= 7.0.4.3)
@@ -365,7 +384,7 @@ DEPENDENCIES
   webdrivers
 
 RUBY VERSION
-   ruby 3.3.6p108
+   ruby 4.0.0p0
 
 BUNDLED WITH
    2.7.1

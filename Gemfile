@@ -1,12 +1,21 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "3.3.6"
+ruby "4.0.0"
 
 gem 'dotenv'
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "7.0.4.3"
+
+# Rails 7.0 references stdlib gems removed from Ruby's defaults in 3.4+/4.0
+gem "benchmark"
+gem "mutex_m"
+gem "drb"
+gem "base64"
+gem "bigdecimal"
+gem "logger"
+gem "ostruct"
 
 # The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem "sprockets-rails"
@@ -49,7 +58,7 @@ gem "bootsnap", require: false
 
 gem 'concurrent-ruby', '1.3.4'
 gem 'pg'
-gem 'forest_liana'
+gem 'forest_liana', path: '/Users/matthieuvideaud/Sites/agents/in-app/forest-rails'
 
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
